@@ -1,4 +1,9 @@
-name: CI
+"""Fix ci.yml YAML syntax by rewriting inline python -c multi-line strings."""
+import yaml
+
+path = r'd:\Temp\Programing\Pronuncia Bench\.github\workflows\ci.yml'
+
+fixed = '''name: CI
 
 on:
   push:
@@ -45,3 +50,15 @@ jobs:
 
       - name: Verify provenance tracking
         run: python -c "from pronunciabench.models.espeak import EspeakG2P; m=EspeakG2P(language='en-us'); p=m.predict('Smith','en-US'); assert p.provenance.is_real_prediction; assert p.provenance.actual_backend == 'espeak'; print('Backend:', p.provenance.actual_backend); print('Prediction:', p.prediction)"
+'''
+
+with open(path, 'w', encoding='utf-8', newline='\n') as f:
+    f.write(fixed)
+print('Written', len(fixed), 'bytes')
+
+# Verify YAML parses
+y = yaml.safe_load(open(path, encoding='utf-8'))
+print('YAML parsed OK')
+print('Steps:', len(y['jobs']['test']['steps']))
+for i, step in enumerate(y['jobs']['test']['steps']):
+    print(f'  {i}: {step.get("name", step.get("run", "?")[:50])}')
