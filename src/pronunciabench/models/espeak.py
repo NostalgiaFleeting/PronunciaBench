@@ -111,11 +111,28 @@ class EspeakG2P(BaseG2PModel):
             )
             return prediction, provenance
         except Exception:
-            provenance = BackendProvenance(
-                requested_backend="espeak", actual_backend=self._backend_used,
-                backend_version=self._backend_version, fallback_used=True, is_real_prediction=False,
+            pass
+        # Fallback: call espeak-ng directly via subprocess
+        try:
+            import subprocess
+            result = subprocess.run(
+                ["espeak-ng", "-v", phonemize_lang, "-q", "--ipa=XIPA", text],
+                capture_output=True, text=True, timeout=10,
             )
-            return fallback, provenance
+            if result.returncode == 0 and result.stdout.strip():
+                prediction = result.stdout.strip()
+                provenance = BackendProvenance(
+                    requested_backend="espeak", actual_backend="espeak-subprocess",
+                    backend_version=self._backend_version, fallback_used=False, is_real_prediction=True,
+                )
+                return prediction, provenance
+        except Exception:
+            pass
+        provenance = BackendProvenance(
+            requested_backend="espeak", actual_backend=self._backend_used,
+            backend_version=self._backend_version, fallback_used=True, is_real_prediction=False,
+        )
+        return fallback, provenance
 
     def predict(self, text: str, locale: str | None = None) -> PronunciationPrediction:
         import time
