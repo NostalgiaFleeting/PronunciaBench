@@ -6,10 +6,10 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
+from pronunciabench.data.models import PronunciationPrediction
 from pronunciabench.ensemble.consensus import ConsensusEngine
 from pronunciabench.models.espeak import EspeakG2P
 from pronunciabench.reliability.scorer import ReliabilityScorer
-from pronunciabench.data.models import PronunciationPrediction
 
 
 class PronounceRequest(BaseModel):

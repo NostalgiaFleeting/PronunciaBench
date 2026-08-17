@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from pronunciabench.data.models import PronunciationPrediction
 from pronunciabench.ensemble.consensus import ConsensusEngine
 

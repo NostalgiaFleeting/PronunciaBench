@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Protocol, runtime_checkable
 
@@ -93,7 +93,7 @@ class ReliabilityResult(BaseModel):
     decision: AbstentionDecision
     reason: str
     is_calibrated_probability: bool = False
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     @field_validator("confidence")
     @classmethod

@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-import pytest
-
-from pronunciabench.data.models import BackendProvenance, PronunciationPrediction
+from pronunciabench.data.models import BackendProvenance
 from pronunciabench.models.espeak import EspeakG2P
 
 

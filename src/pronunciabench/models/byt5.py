@@ -39,7 +39,7 @@ class ByT5G2P:
             return
         try:
             import torch
-            from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+            from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
             load_path = self.fine_tuned_path or self.model_id
             self._tokenizer = AutoTokenizer.from_pretrained(load_path)
             self._model = AutoModelForSeq2SeqLM.from_pretrained(load_path)
@@ -53,6 +53,7 @@ class ByT5G2P:
     def predict(self, text: str, locale: str | None = None):
         """Run prediction. Returns placeholder if model not fine-tuned."""
         import time
+
         from pronunciabench.data.models import BackendProvenance, PronunciationPrediction
         start = time.perf_counter()
 

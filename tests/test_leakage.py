@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-import pytest
-
-from pronunciabench.data import load_jsonl, compute_stats, audit_leakage
+from pronunciabench.data import audit_leakage, compute_stats, load_jsonl
 from pronunciabench.data.models import PronunciationExample, VerificationStatus
 
 

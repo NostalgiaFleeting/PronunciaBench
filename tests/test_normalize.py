@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from pronunciabench.data.normalize import (
     character_error_rate,
     exact_match_accuracy,

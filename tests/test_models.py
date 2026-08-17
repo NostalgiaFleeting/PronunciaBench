@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from pronunciabench.models.espeak import EspeakG2P
 from pronunciabench.data.models import PronunciationPrediction
+from pronunciabench.models.espeak import EspeakG2P
 
 
 class TestEspeakG2P:
