@@ -14,14 +14,18 @@ class BaseG2PModel(ABC, G2PModel):
     model_name: str = "base_g2p"
 
     @abstractmethod
-    def _predict_impl(self, text: str, locale: str | None) -> str:
-        """Subclasses implement actual pronunciation prediction."""
+    def _predict_impl(self, text: str, locale: str | None) -> tuple[str, object]:
+        """Subclasses implement actual pronunciation prediction.
+
+        Returns:
+            (prediction_string, provenance_object)
+        """
         ...
 
     def predict(self, text: str, locale: str | None = None) -> PronunciationPrediction:
         """Run prediction and measure latency."""
         start = time.perf_counter()
-        prediction = self._predict_impl(text, locale)
+        prediction, provenance = self._predict_impl(text, locale)
         elapsed_ms = (time.perf_counter() - start) * 1000
 
         return PronunciationPrediction(
@@ -29,6 +33,7 @@ class BaseG2PModel(ABC, G2PModel):
             prediction=prediction,
             locale=locale,
             latency_ms=round(elapsed_ms, 2),
+            provenance=provenance,
         )
 
     def predict_batch(

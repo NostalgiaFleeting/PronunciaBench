@@ -9,11 +9,11 @@ from pathlib import Path
 from typing import Any
 
 import torch
+from torch.optim import AdamW
 from torch.utils.data import Dataset, DataLoader
 from transformers import (
     AutoTokenizer,
     AutoModelForSeq2SeqLM,
-    AdamW,
     get_linear_schedule_with_warmup,
 )
 

@@ -1,6 +1,15 @@
 
 
-"""Confidence estimation and reliability scoring."""
+"""Confidence estimation and reliability scoring.
+
+IMPORTANT: The ReliabilityScorer produces a HEURISTIC reliability score,
+NOT a calibrated probability. The five components are weighted heuristics
+with hand-selected weights. The output should be interpreted as a
+relative confidence indicator, not as P(correct).
+
+For statistically grounded abstention, use ConformalAbstainer separately
+with a held-out calibration set.
+"""
 
 from __future__ import annotations
 
@@ -14,7 +23,18 @@ from pronunciabench.data.normalize import extract_phonemes, normalize_ipa
 
 @dataclass
 class ReliabilityScorer:
-    """Estimates confidence and drives abstention decisions."""
+    """Heuristic reliability scorer (NOT a calibrated probability estimator).
+
+    Computes a weighted composite of five heuristics:
+    - model_agreement (30%): pairwise phoneme distance between predictions
+    - sequence_confidence (25%): model-provided confidences or length consistency
+    - locale_support (15%): heuristic based on known language coverage
+    - prediction_stability (20%): repetition consistency of normalized outputs
+    - oov_signal (10%): fallback pattern detection
+
+    The weights are hand-selected and have NOT been empirically validated.
+    The output confidence is a heuristic score, not a calibrated probability.
+    """
 
     abstention_threshold: float = 0.5
     calibration_scores: list[float] | None = None
@@ -40,18 +60,18 @@ class ReliabilityScorer:
         oov_signal = self._compute_oov_signal(predictions)
         components["oov_signal"] = oov_signal
 
+        # Hand-selected weights — NOT empirically calibrated
         weights = {"model_agreement": 0.30, "sequence_confidence": 0.25,
                    "locale_support": 0.15, "prediction_stability": 0.20, "oov_signal": 0.10}
         total = sum(weights.values())
         confidence = sum(components[k] * weights[k] / total for k in weights)
 
-        if self.calibration_scores is not None and reference is not None:
-            confidence = self._apply_conformal_calibration(confidence, reference, predictions)
-
         decision = AbstentionDecision.ABSTAIN if confidence < self.abstention_threshold else AbstentionDecision.ACCEPT
         reason = self._generate_reason(confidence, decision, components, predictions)
-        return ReliabilityResult(confidence=round(confidence, 4), components=components,
-                                 decision=decision, reason=reason)
+        return ReliabilityResult(
+            confidence=round(confidence, 4), components=components,
+            decision=decision, reason=reason, is_calibrated_probability=False,
+        )
 
     def _compute_agreement(self, norm_preds: list[str]) -> float:
         if len(norm_preds) <= 1:

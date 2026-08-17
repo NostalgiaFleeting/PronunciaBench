@@ -1,20 +1,20 @@
-{"text": "Smith", "pronunciation": "/smɪθ/", "locale": "en-US", "source": "CMU", "split": "test", "verification_status": "verified"}
-{"text": "Garcia", "pronunciation": "/ɡaɾˈsi.a/", "locale": "es-ES", "source": "WikiPron", "split": "test", "verification_status": "verified"}
-{"text": "Muller", "pronunciation": "/ˈmʊlɐ/", "locale": "de-DE", "source": "CMU", "split": "test", "verification_status": "verified"}
-{"text": "Tanaka", "pronunciation": "/taɲaka/", "locale": "ja-JP", "source": "WikiPron", "split": "test", "verification_status": "verified"}
-{"text": "Kim", "pronunciation": "/kim/", "locale": "ko-KR", "source": "WikiPron", "split": "test", "verification_status": "verified"}
-{"text": "Mueller", "pronunciation": "/ˈmʏlɐ/", "locale": "de-DE", "source": "CMU", "split": "test", "verification_status": "verified"}
-{"text": "Johnson", "pronunciation": "/ˈdʒɑnsən/", "locale": "en-US", "source": "CMU", "split": "test", "verification_status": "verified"}
-{"text": "Dubois", "pronunciation": "/dybwa/", "locale": "fr-FR", "source": "WikiPron", "split": "test", "verification_status": "verified"}
-{"text": "Rossi", "pronunciation": "/ˈrɔssi/", "locale": "it-IT", "source": "WikiPron", "split": "test", "verification_status": "verified"}
-{"text": "Popov", "pronunciation": "/pɐˈpop/", "locale": "ru-RU", "source": "WikiPron", "split": "test", "verification_status": "verified"}
-{"text": "Nakamura", "pronunciation": "/nakamaɾa/", "locale": "ja-JP", "source": "WikiPron", "split": "test", "verification_status": "verified"}
-{"text": "Schmidt", "pronunciation": "/ʃmɪt/", "locale": "de-DE", "source": "CMU", "split": "test", "verification_status": "verified"}
-{"text": "Brown", "pronunciation": "/bɹaʊn/", "locale": "en-US", "source": "CMU", "split": "test", "verification_status": "verified"}
-{"text": "Nguyen", "pronunciation": "/ŋwiən/", "locale": "vi-VN", "source": "exploratory", "split": "test", "verification_status": "unverified"}
-{"text": "Williams", "pronunciation": "/ˈwɪljəmz/", "locale": "en-US", "source": "CMU", "split": "test", "verification_status": "verified"}
-{"text": "Martin", "pronunciation": "/maɾˈtin/", "locale": "es-ES", "source": "WikiPron", "split": "test", "verification_status": "verified"}
-{"text": "Petrov", "pronunciation": "/pʲɪˈtrof/", "locale": "ru-RU", "source": "WikiPron", "split": "test", "verification_status": "verified"}
-{"text": "Suzuki", "pronunciation": "/sɯꜜki/", "locale": "ja-JP", "source": "WikiPron", "split": "test", "verification_status": "verified"}
-{"text": "Lee", "pronunciation": "/li/", "locale": "ko-KR", "source": "WikiPron", "split": "test", "verification_status": "verified"}
-{"text": "Weber", "pronunciation": "/ˈveːbeɐ/", "locale": "de-DE", "source": "CMU", "split": "test", "verification_status": "verified"}
+{"text": "Smith", "pronunciation": "/smɪθ/", "locale": "en-US", "source": "CMU", "split": "test", "verification_status": "verified", "phoneme_system": "ipa", "source_url": "https://github.com/cmusphinx/cmudict"}
+{"text": "Garcia", "pronunciation": "/ɡaɾˈsi.a/", "locale": "es-ES", "source": "WikiPron", "split": "test", "verification_status": "verified", "phoneme_system": "ipa"}
+{"text": "Muller", "pronunciation": "/ˈmʊlɐ/", "locale": "de-DE", "source": "CMU", "split": "test", "verification_status": "verified", "phoneme_system": "ipa", "source_url": "https://github.com/cmusphinx/cmudict"}
+{"text": "Tanaka", "pronunciation": "/taɲaka/", "locale": "ja-JP", "source": "WikiPron", "split": "test", "verification_status": "verified", "phoneme_system": "ipa"}
+{"text": "Kim", "pronunciation": "/kim/", "locale": "ko-KR", "source": "WikiPron", "split": "test", "verification_status": "verified", "phoneme_system": "ipa"}
+{"text": "Mueller", "pronunciation": "/ˈmʏlɐ/", "locale": "de-DE", "source": "CMU", "split": "test", "verification_status": "verified", "phoneme_system": "ipa", "source_url": "https://github.com/cmusphinx/cmudict"}
+{"text": "Johnson", "pronunciation": "/ˈdʒɑnsən/", "locale": "en-US", "source": "CMU", "split": "test", "verification_status": "verified", "phoneme_system": "ipa", "source_url": "https://github.com/cmusphinx/cmudict"}
+{"text": "Dubois", "pronunciation": "/dybwa/", "locale": "fr-FR", "source": "WikiPron", "split": "test", "verification_status": "verified", "phoneme_system": "ipa"}
+{"text": "Rossi", "pronunciation": "/ˈrɔssi/", "locale": "it-IT", "source": "WikiPron", "split": "test", "verification_status": "verified", "phoneme_system": "ipa"}
+{"text": "Popov", "pronunciation": "/pɐˈpop/", "locale": "ru-RU", "source": "WikiPron", "split": "test", "verification_status": "verified", "phoneme_system": "ipa"}
+{"text": "Nakamura", "pronunciation": "/nakamaɾa/", "locale": "ja-JP", "source": "WikiPron", "split": "test", "verification_status": "verified", "phoneme_system": "ipa"}
+{"text": "Schmidt", "pronunciation": "/ʃmɪt/", "locale": "de-DE", "source": "CMU", "split": "test", "verification_status": "verified", "phoneme_system": "ipa", "source_url": "https://github.com/cmusphinx/cmudict"}
+{"text": "Brown", "pronunciation": "/bɹaʊn/", "locale": "en-US", "source": "CMU", "split": "test", "verification_status": "verified", "phoneme_system": "ipa", "source_url": "https://github.com/cmusphinx/cmudict"}
+{"text": "Nguyen", "pronunciation": "/ŋwiən/", "locale": "vi-VN", "source": "exploratory", "split": "test", "verification_status": "unverified", "phoneme_system": "ipa"}
+{"text": "Williams", "pronunciation": "/ˈwɪljəmz/", "locale": "en-US", "source": "CMU", "split": "test", "verification_status": "verified", "phoneme_system": "ipa", "source_url": "https://github.com/cmusphinx/cmudict"}
+{"text": "Martin", "pronunciation": "/maɾˈtin/", "locale": "es-ES", "source": "WikiPron", "split": "test", "verification_status": "verified", "phoneme_system": "ipa"}
+{"text": "Petrov", "pronunciation": "/pʲɪˈtrof/", "locale": "ru-RU", "source": "WikiPron", "split": "test", "verification_status": "verified", "phoneme_system": "ipa"}
+{"text": "Suzuki", "pronunciation": "/sɯꜜki/", "locale": "ja-JP", "source": "WikiPron", "split": "test", "verification_status": "verified", "phoneme_system": "ipa"}
+{"text": "Lee", "pronunciation": "/li/", "locale": "ko-KR", "source": "WikiPron", "split": "test", "verification_status": "verified", "phoneme_system": "ipa"}
+{"text": "Weber", "pronunciation": "/ˈveːbeɐ/", "locale": "de-DE", "source": "CMU", "split": "test", "verification_status": "verified", "phoneme_system": "ipa", "source_url": "https://github.com/cmusphinx/cmudict"}

@@ -1,25 +1,25 @@
-{"text": "Anderson", "pronunciation": "/ˈændɚsn/", "locale": "en-US", "source": "CMU", "split": "train", "verification_status": "verified"}
-{"text": "Taylor", "pronunciation": "/ˈteɪlɚ/", "locale": "en-US", "source": "CMU", "split": "train", "verification_status": "verified"}
-{"text": "Thomas", "pronunciation": "/ˈtɑməs/", "locale": "en-US", "source": "CMU", "split": "train", "verification_status": "verified"}
-{"text": "Jackson", "pronunciation": "/ˈdʒæksn/", "locale": "en-US", "source": "CMU", "split": "train", "verification_status": "verified"}
-{"text": "White", "pronunciation": "/waɪt/", "locale": "en-US", "source": "CMU", "split": "train", "verification_status": "verified"}
-{"text": "Harris", "pronunciation": "/ˈhæɹəs/", "locale": "en-US", "source": "CMU", "split": "train", "verification_status": "verified"}
-{"text": "Clark", "pronunciation": "/klɑɹk/", "locale": "en-US", "source": "CMU", "split": "train", "verification_status": "verified"}
-{"text": "Lewis", "pronunciation": "/ˈluːəs/", "locale": "en-US", "source": "CMU", "split": "train", "verification_status": "verified"}
-{"text": "Robinson", "pronunciation": "/ˈɹɑbsən/", "locale": "en-US", "source": "CMU", "split": "train", "verification_status": "verified"}
-{"text": "Walker", "pronunciation": "/ˈwɑkɚ/", "locale": "en-US", "source": "CMU", "split": "train", "verification_status": "verified"}
-{"text": "Honda", "pronunciation": "/honda/", "locale": "ja-JP", "source": "WikiPron", "split": "train", "verification_status": "verified"}
-{"text": "Yamamoto", "pronunciation": "/jamamoto/", "locale": "ja-JP", "source": "WikiPron", "split": "train", "verification_status": "verified"}
-{"text": "Sato", "pronunciation": "/satô/", "locale": "ja-JP", "source": "WikiPron", "split": "train", "verification_status": "verified"}
-{"text": "Takahashi", "pronunciation": "/takahaçi/", "locale": "ja-JP", "source": "WikiPron", "split": "train", "verification_status": "verified"}
-{"text": "Watanabe", "pronunciation": "/watanaβe/", "locale": "ja-JP", "source": "WikiPron", "split": "train", "verification_status": "verified"}
-{"text": "Lopez", "pronunciation": "/ˈlopɛs/", "locale": "es-ES", "source": "WikiPron", "split": "train", "verification_status": "verified"}
-{"text": "Gonzalez", "pronunciation": "/ɡonθaˈlez/", "locale": "es-ES", "source": "WikiPron", "split": "train", "verification_status": "verified"}
-{"text": "Fernandez", "pronunciation": "/feɾnanˈdez/", "locale": "es-ES", "source": "WikiPron", "split": "train", "verification_status": "verified"}
-{"text": "Rodriguez", "pronunciation": "/roðˈriɣez/", "locale": "es-ES", "source": "WikiPron", "split": "train", "verification_status": "verified"}
-{"text": " Martinez", "pronunciation": "/maɾˈtinɛθ/", "locale": "es-ES", "source": "WikiPron", "split": "train", "verification_status": "verified"}
-{"text": "Dupont", "pronunciation": "/dypon/", "locale": "fr-FR", "source": "WikiPron", "split": "train", "verification_status": "verified"}
-{"text": "Laurent", "pronunciation": "/loʁɑ̃/", "locale": "fr-FR", "source": "WikiPron", "split": "train", "verification_status": "verified"}
-{"text": "Michel", "pronunciation": "/miʃɛl/", "locale": "fr-FR", "source": "WikiPron", "split": "train", "verification_status": "verified"}
-{"text": "Simon", "pronunciation": "/simɔ̃/", "locale": "fr-FR", "source": "WikiPron", "split": "train", "verification_status": "verified"}
-{"text": "Dubois", "pronunciation": "/dybwa/", "locale": "fr-FR", "source": "WikiPron", "split": "train", "verification_status": "verified"}
+{"text": "Lopez", "pronunciation": "/ˈlopɛs/", "locale": "es-ES", "source": "WikiPron", "split": "train", "verification_status": "verified", "phoneme_system": "ipa"}
+{"text": "Gonzalez", "pronunciation": "/ɡonθaˈlez/", "locale": "es-ES", "source": "WikiPron", "split": "train", "verification_status": "verified", "phoneme_system": "ipa"}
+{"text": "Fernandez", "pronunciation": "/feɾnanˈdez/", "locale": "es-ES", "source": "WikiPron", "split": "train", "verification_status": "verified", "phoneme_system": "ipa"}
+{"text": "Rodriguez", "pronunciation": "/roðˈriɣez/", "locale": "es-ES", "source": "WikiPron", "split": "train", "verification_status": "verified", "phoneme_system": "ipa"}
+{"text": "Martinez", "pronunciation": "/maɾˈtinɛθ/", "locale": "es-ES", "source": "WikiPron", "split": "train", "verification_status": "verified", "phoneme_system": "ipa"}
+{"text": "Dupont", "pronunciation": "/dypon/", "locale": "fr-FR", "source": "WikiPron", "split": "train", "verification_status": "verified", "phoneme_system": "ipa"}
+{"text": "Laurent", "pronunciation": "/loʁɑ̃/", "locale": "fr-FR", "source": "WikiPron", "split": "train", "verification_status": "verified", "phoneme_system": "ipa"}
+{"text": "Michel", "pronunciation": "/miʃɛl/", "locale": "fr-FR", "source": "WikiPron", "split": "train", "verification_status": "verified", "phoneme_system": "ipa"}
+{"text": "Simon", "pronunciation": "/simɔ̃/", "locale": "fr-FR", "source": "WikiPron", "split": "train", "verification_status": "verified", "phoneme_system": "ipa"}
+{"text": "Moreau", "pronunciation": "/moɾo/", "locale": "fr-FR", "source": "WikiPron", "split": "train", "verification_status": "verified", "phoneme_system": "ipa"}
+{"text": "Honda", "pronunciation": "/honda/", "locale": "ja-JP", "source": "WikiPron", "split": "train", "verification_status": "verified", "phoneme_system": "ipa"}
+{"text": "Yamamoto", "pronunciation": "/jamamoto/", "locale": "ja-JP", "source": "WikiPron", "split": "train", "verification_status": "verified", "phoneme_system": "ipa"}
+{"text": "Sato", "pronunciation": "/satô/", "locale": "ja-JP", "source": "WikiPron", "split": "train", "verification_status": "verified", "phoneme_system": "ipa"}
+{"text": "Takahashi", "pronunciation": "/takahaçi/", "locale": "ja-JP", "source": "WikiPron", "split": "train", "verification_status": "verified", "phoneme_system": "ipa"}
+{"text": "Watanabe", "pronunciation": "/watanaβe/", "locale": "ja-JP", "source": "WikiPron", "split": "train", "verification_status": "verified", "phoneme_system": "ipa"}
+{"text": "Anderson", "pronunciation": "/ˈændɚsn/", "locale": "en-US", "source": "CMU", "split": "train", "verification_status": "verified", "phoneme_system": "ipa", "source_url": "https://github.com/cmusphinx/cmudict"}
+{"text": "Taylor", "pronunciation": "/ˈteɪlɚ/", "locale": "en-US", "source": "CMU", "split": "train", "verification_status": "verified", "phoneme_system": "ipa", "source_url": "https://github.com/cmusphinx/cmudict"}
+{"text": "Thomas", "pronunciation": "/ˈtɑməs/", "locale": "en-US", "source": "CMU", "split": "train", "verification_status": "verified", "phoneme_system": "ipa", "source_url": "https://github.com/cmusphinx/cmudict"}
+{"text": "Jackson", "pronunciation": "/ˈdʒæksn/", "locale": "en-US", "source": "CMU", "split": "train", "verification_status": "verified", "phoneme_system": "ipa", "source_url": "https://github.com/cmusphinx/cmudict"}
+{"text": "White", "pronunciation": "/waɪt/", "locale": "en-US", "source": "CMU", "split": "train", "verification_status": "verified", "phoneme_system": "ipa", "source_url": "https://github.com/cmusphinx/cmudict"}
+{"text": "Harris", "pronunciation": "/ˈhæɹəs/", "locale": "en-US", "source": "CMU", "split": "train", "verification_status": "verified", "phoneme_system": "ipa", "source_url": "https://github.com/cmusphinx/cmudict"}
+{"text": "Clark", "pronunciation": "/klɑɹk/", "locale": "en-US", "source": "CMU", "split": "train", "verification_status": "verified", "phoneme_system": "ipa", "source_url": "https://github.com/cmusphinx/cmudict"}
+{"text": "Lewis", "pronunciation": "/ˈluːəs/", "locale": "en-US", "source": "CMU", "split": "train", "verification_status": "verified", "phoneme_system": "ipa", "source_url": "https://github.com/cmusphinx/cmudict"}
+{"text": "Robinson", "pronunciation": "/ˈɹɑbsən/", "locale": "en-US", "source": "CMU", "split": "train", "verification_status": "verified", "phoneme_system": "ipa", "source_url": "https://github.com/cmusphinx/cmudict"}
+{"text": "Walker", "pronunciation": "/ˈwɑkɚ/", "locale": "en-US", "source": "CMU", "split": "train", "verification_status": "verified", "phoneme_system": "ipa", "source_url": "https://github.com/cmusphinx/cmudict"}

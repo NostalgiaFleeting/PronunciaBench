@@ -75,7 +75,10 @@ def pronounce(text: str, locale: str | None, models: str, output: str | None) ->
 @click.option("--models", "-m", default="espeak", help="Comma-separated model names")
 @click.option("--locale", "-l", default=None, help="Filter by locale")
 @click.option("--output", "-o", default=None, help="Output JSON report")
-def benchmark(dataset: str, models: str, locale: str | None, output: str | None) -> None:
+@click.option("--require-real-backends", is_flag=True, default=False,
+              help="Fail if any backend fell back to placeholder predictions")
+def benchmark(dataset: str, models: str, locale: str | None, output: str | None,
+              require_real_backends: bool) -> None:
     """Run benchmark evaluation on a dataset."""
     data_path = Path(dataset)
     if not data_path.exists():
@@ -95,12 +98,10 @@ def benchmark(dataset: str, models: str, locale: str | None, output: str | None)
         sys.exit(1)
 
     import numpy as np
-    model_list = [m.strip() for m in models.split(",")]
     backends: dict[str, object] = {"espeak": EspeakG2P()}
-    if not backends:
-        backends = {"espeak": EspeakG2P()}
 
     reports = {}
+    all_has_fallback = False
     for model_name, backend in backends.items():
         pers, predictions = [], []
         for ex in examples:
@@ -112,11 +113,14 @@ def benchmark(dataset: str, models: str, locale: str | None, output: str | None)
                 predictions.append(pred)
                 per = phoneme_error_rate(ref, pred.prediction) if ref else 0.0
                 pers.append(per)
+                if not pred.provenance.is_real_prediction:
+                    all_has_fallback = True
         if pers:
             reports[model_name] = {
                 "model": model_name, "phoneme_error_rate": round(float(np.mean(pers)), 4),
                 "n_samples": len(pers),
                 "mean_latency_ms": round(float(np.mean([p.latency_ms for p in predictions])), 2),
+                "any_fallback": any(not p.provenance.is_real_prediction for p in predictions),
             }
 
     # Consensus benchmark
@@ -130,6 +134,7 @@ def benchmark(dataset: str, models: str, locale: str | None, output: str | None)
             all_predictions.extend(preds)
             all_references.append(ref)
 
+    benchmark_valid = not all_has_fallback
     if all_predictions:
         ce = ConsensusEngine(all_predictions)
         cs = ce.compute_consensus()
@@ -142,8 +147,15 @@ def benchmark(dataset: str, models: str, locale: str | None, output: str | None)
     reports["reliability"] = {"confidence": rel.confidence, "decision": rel.decision.value,
                               "components": rel.components}
 
-    result = {"dataset": str(data_path), "n_examples": len(examples),
-              "locale_filter": locale, "reports": reports}
+    result = {
+        "dataset": str(data_path), "n_examples": len(examples),
+        "locale_filter": locale, "benchmark_valid": benchmark_valid,
+        "fallback_detected": all_has_fallback, "reports": reports,
+    }
+    if require_real_backends and all_has_fallback:
+        click.echo("ERROR: Benchmark contains placeholder predictions. "
+                   "Set --require-real-backends=false to allow fallback results.", err=True)
+        sys.exit(2)
     if output:
         with open(output, "w", encoding="utf-8") as f:
             json.dump(result, f, indent=2, ensure_ascii=False)

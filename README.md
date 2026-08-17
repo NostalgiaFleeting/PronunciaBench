@@ -1,35 +1,23 @@
 # PronunciaBench
 
-**A multilingual G2P reliability framework that measures not only pronunciation accuracy, but also when a model should abstain.**
+**A G2P reliability framework that measures when a pronunciation model should abstain.**
 
 Pronunciation systems often return confident predictions even for names, languages, or spellings they handle poorly. PronunciaBench addresses this by combining multiple G2P backends with calibrated confidence estimation and conformal abstention.
-
-## Demo
-
-```bash
-# CLI pronunciation
-pronunciabench pronounce "Nguyen" --locale vi-VN
-
-# Benchmark a dataset
-pronunciabench benchmark --dataset data/samples/test.jsonl
-
-# Interactive dashboard
-python dashboard/app.py
-```
 
 ## Architecture
 
 ```
 Input Name ──► Normalization ──► Multilingual G2P Backends
                                       ├── Espeak baseline (rule-based)
-                                      ├── ByT5 pretrained (neural)
-                                      └── Fine-tuned ByT5 (custom)
+                                      ├── ByT5 base checkpoint (for fine-tuning)
+                                      └── Fine-tuned ByT5 (custom experiments)
                                     │
                                     ▼
                               Evaluation Engine (PER, CER, agreement)
                                     │
                                     ▼
-                              Reliability Layer (confidence, abstention)
+                              Reliability Layer
+                              (heuristic scorer + conformal abstention)
                                     │
                                     ▼
                           API + Dashboard + CLI
@@ -37,20 +25,20 @@ Input Name ──► Normalization ──► Multilingual G2P Backends
 
 ## Models
 
-| Backend | Type | Description |
-|---------|------|-------------|
-| `espeak` | Rule-based | eSpeak-NG via phonemizer; supports 100+ languages |
-| `byt5` | Pretrained neural | Google ByT5-small, character-level seq2seq G2P |
-| `fine_tuned` | Fine-tuned neural | ByT5-small fine-tuned on name data |
+| Backend | Type | Status |
+|---------|------|--------|
+| `espeak` | Rule-based (eSpeak-NG) | Validated on Linux with espeak-ng installed |
+| `byt5-base` | Base ByT5 checkpoint | NOT a G2P model — requires fine-tuning |
+| `fine_tuned` | Fine-tuned ByT5 | Pending GPU experiment |
 
 ## Dataset Provenance
 
-Data sources:
-- **CMU Pronouncing Dictionary** — BSD-style, English names (verified)
+Data sources with explicit provenance:
+- **CMU Pronouncing Dictionary** — BSD-style, English names, ARPAbet → IPA conversion needed
 - **WikiPron** — open multilingual name dataset
-- **Internal samples** — `data/samples/` with `verified`/`unverified` tags
+- **Internal samples** — `data/samples/` with source URLs and `verified`/`unverified` tags
 
-All data is tagged with `verification_status`. Quantitative benchmarks use only `verified` examples.
+All data tagged with `verification_status`, `phoneme_system`, `source_url`, `source_license`. Quantitative benchmarks use only `verified` examples from non-overlapping splits.
 
 ## Training
 
@@ -60,16 +48,17 @@ python -m pronunciabench.training.train \
 ```
 
 Features: gradient accumulation, early stopping, MLflow tracking, seed control.
+Smoke test validates dataset→forward→backward→checkpoint→reload pipeline.
 
 ## Evaluation
 
-- **PER**: Phoneme-level Levenshtein distance / reference length
+- **PER**: Phoneme-level Levenshtein distance / reference length (hand-verified correctness)
 - **CER**: Character-level edit distance
-- **Paired bootstrap**: 1000 resamples for 95% CI on \u0394PER
+- **Paired bootstrap**: 1000 resamples for 95% CI on delta-PER
 
 ## Reliability
 
-The `ReliabilityScorer` computes confidence from five explainable components:
+The `ReliabilityScorer` computes a **heuristic** confidence score (NOT a calibrated probability):
 
 | Component | Weight | Signal |
 |-----------|--------|--------|
@@ -79,7 +68,9 @@ The `ReliabilityScorer` computes confidence from five explainable components:
 | `prediction_stability` | 20% | Output repetition consistency |
 | `oov_signal` | 10% | Fallback pattern detection |
 
-**Conformal abstention** uses a calibration set to set thresholds with statistical guarantees.
+Weights are hand-selected, not empirically calibrated. See `docs/confidence_model.md`.
+
+For statistically grounded abstention, use `ConformalAbstainer` with a held-out calibration set.
 
 ## API
 
