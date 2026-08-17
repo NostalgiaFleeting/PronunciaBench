@@ -92,24 +92,26 @@ class EspeakG2P(BaseG2PModel):
             return fallback, provenance
         lang = locale or self._language or "en-us"
         phonemize_lang = self._LOCALE_MAP.get(lang, lang.split("-")[0])
+        # Try phonemizer first
         try:
-            if self._backend_used == "espeak":
-                result = self._phonemize(
-                    [text], language=phonemize_lang, backend="espeak",
-                    preserve_punctuation=self._preserve_punctuation, with_stress=True,
+            if self._phonemize is not None:
+                if self._backend_used == "espeak":
+                    result = self._phonemize(
+                        [text], language=phonemize_lang, backend="espeak",
+                        preserve_punctuation=self._preserve_punctuation, with_stress=True,
+                    )
+                else:
+                    result = self._phonemize(
+                        [text], language=phonemize_lang, backend="segments",
+                        preserve_punctuation=False, with_stress=False,
+                    )
+                prediction = result.strip() if result else fallback
+                is_real = prediction != fallback
+                provenance = BackendProvenance(
+                    requested_backend="espeak", actual_backend=self._backend_used,
+                    backend_version=self._backend_version, fallback_used=not is_real, is_real_prediction=is_real,
                 )
-            else:
-                result = self._phonemize(
-                    [text], language=phonemize_lang, backend="segments",
-                    preserve_punctuation=False, with_stress=False,
-                )
-            prediction = result.strip() if result else fallback
-            is_real = prediction != fallback
-            provenance = BackendProvenance(
-                requested_backend="espeak", actual_backend=self._backend_used,
-                backend_version=self._backend_version, fallback_used=not is_real, is_real_prediction=is_real,
-            )
-            return prediction, provenance
+                return prediction, provenance
         except Exception:
             pass
         # Fallback: call espeak-ng directly via subprocess
