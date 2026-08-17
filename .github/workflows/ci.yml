@@ -44,7 +44,8 @@ jobs:
         run: python -m pronunciabench.cli.main benchmark --dataset data/samples/test.jsonl --output /tmp/bench.json
 
       - name: Verify benchmark used real backend
-        run: python -c "import json; d=json.load(open('/tmp/bench.json')); assert d['benchmark_valid'] == True; assert not d['fallback_detected']; reports=d['reports']; assert reports['espeak']['phoneme_error_rate'] < 1.0; print('Benchmark valid:', d['benchmark_valid']); print('eSpeak PER:', reports['espeak']['phoneme_error_rate'])"
+        run: |
+          python -c "import json; d=json.load(open('/tmp/bench.json')); print('benchmark_valid:', d['benchmark_valid']); print('fallback_detected:', d['fallback_detected']); print('n_examples:', d['n_examples']); reports=d['reports']; espeak=reports.get('espeak', {}); print('espeak_per:', espeak.get('phoneme_error_rate')); print('espeak_any_fallback:', espeak.get('any_fallback')); print('n_samples:', espeak.get('n_samples')); assert d['benchmark_valid'] == True, f'Expected valid benchmark, got: {d}'; assert not d['fallback_detected'], 'Fallback was used!'; assert espeak.get('phoneme_error_rate', 1.0) < 1.0, 'PER should be < 1.0 with real backend'; print('eSpeak PER:', espeak.get('phoneme_error_rate'))"
 
       - name: Verify provenance tracking
         run: python -c "from pronunciabench.models.espeak import EspeakG2P; m=EspeakG2P(language='en-us'); p=m.predict('Smith','en-US'); assert p.provenance.is_real_prediction; assert p.provenance.actual_backend == 'espeak'; print('Backend:', p.provenance.actual_backend); print('Prediction:', p.prediction)"
