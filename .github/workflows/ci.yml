@@ -28,6 +28,9 @@ jobs:
       - name: Verify eSpeak-NG is available
         run: espeak-ng --version
 
+      - name: Set eSpeak library path for phonemizer
+        run: echo "PHONEMIZER_ESPEAK_LIBRARY=$(find /usr/lib -name 'libespeak-ng*.so*' 2>/dev/null | head -1)" >> $GITHUB_ENV
+
       - name: Lint
         run: ruff check src/ tests/
 
