@@ -398,10 +398,7 @@ def run_experiment(args: argparse.Namespace) -> None:
         # predictions may be logits tuple or ndarray
         raw_preds = eval_pred.predictions
         label_ids = eval_pred.label_ids
-        if isinstance(raw_preds, tuple):
-            logits = raw_preds[0]
-        else:
-            logits = raw_preds
+        logits = raw_preds[0] if isinstance(raw_preds, tuple) else raw_preds
         pred_tokens = np.argmax(logits, axis=-1)
         pred_texts = tokenizer.batch_decode(pred_tokens, skip_special_tokens=True)
         masked_labels = np.where(label_ids != -100, label_ids, tokenizer.pad_token_id)
