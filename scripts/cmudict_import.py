@@ -9,7 +9,7 @@ import re
 import sys
 from collections import defaultdict
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import requests
@@ -181,7 +181,7 @@ def main() -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     manifest: dict[str, object] = {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
         "git_sha": git_sha,
         "splits": {},
         "audit": audit,
