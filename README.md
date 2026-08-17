@@ -35,9 +35,39 @@ Input Name ──► Normalization ──► Multilingual G2P Backends
 
 A ByT5-small fine-tuning experiment was built on the `experiment/byt5-cmudict` branch to learn ARPAbet pronunciation from CMUdict (135k entries). The full pipeline is ready for a GPU run.
 
-**Status: `REAL_GPU_RUN_PENDING`** — no CUDA GPU available locally. A CPU smoke test validated the training chain (`dataset → forward/backward → checkpoint → inference → metric`) but the PER of 1.59 on 200 samples is **not a model performance result**; it only confirms the pipeline works. See `experiments/byt5-cmudict-001/byt5-cmudict-001/results.json` for smoke test details.
+**Status: `REAL_GPU_RUN_PENDING`** — GPU training requires a CUDA-enabled PyTorch install. The current environment has `torch 2.13.0+cpu` (Python 3.13 has no CUDA wheels). A CPU smoke test validated the training chain (`dataset → forward/backward → checkpoint → inference → metric`) but the PER of 1.59 on 200 samples is **not a model performance result**; it only confirms the pipeline works. See `experiments/byt5-cmudict-001/byt5-cmudict-001/results.json` for smoke test details.
 
-**To run on GPU (Kaggle):**
+### Local GPU setup (GTX 1070 / 8GB VRAM)
+
+The machine has a GTX 1070 (Pascal, CC 6.1, 8 GB) confirmed by `nvidia-smi`. To use it:
+
+```bash
+# Python 3.12 is installed alongside 3.13; use it for CUDA PyTorch
+py -3.12 -m ensurepip --upgrade
+py -3.12 -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+pip install -e ".[dev,train]"
+
+python scripts/cmudict_import.py
+python scripts/run_byt5_cmudict.py --data-dir data/experiment \
+    --batch-size 1 --gradient-accumulation 32 --gradient-checkpointing \
+    --optimizer adafactor --amp-backend auto
+```
+
+Canary validation (100 steps, no frozen test):
+```bash
+python scripts/run_byt5_cmudict.py --data-dir data/experiment \
+    --batch-size 1 --gradient-accumulation 32 --gradient-checkpointing \
+    --optimizer adafactor --max-steps 100
+```
+
+**GPU config notes:**
+- Pascal (CC 6.x) has **no BF16** — script starts in fp32, falls back to fp16 only if OOM
+- `--gradient-checkpointing` is on by default (trades compute for VRAM)
+- `--optimizer adafactor` recommended for 8 GB cards (AdamW uses ~2× optimizer state memory)
+- OOM auto-fallback: halves batch size and/or switches optimizer until training succeeds
+- Target effective batch: 32 (= `batch_size × gradient_accumulation`)
+
+**Kaggle as Plan B:**
 ```bash
 git clone https://github.com/NostalgiaFleeting/PronunciaBench.git
 cd PronunciaBench
