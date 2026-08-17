@@ -42,8 +42,9 @@ class EspeakG2P(BaseG2PModel):
             # On Linux, phonemizer may not find espeak library automatically.
             # Try to locate and set it programmatically.
             try:
-                from phonemizer.backend.espeak.wrapper import EspeakWrapper
                 import subprocess
+
+                from phonemizer.backend.espeak.wrapper import EspeakWrapper
                 lib_path = None
                 if subprocess.run(["which", "espeak-ng"], capture_output=True).returncode == 0:
                     result = subprocess.run(
