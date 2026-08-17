@@ -25,10 +25,22 @@ htmlcov/
 .mypy_cache/
 .ruff_cache/
 
-# Artifacts
+# Artifacts (training checkpoints are large)
 artifacts/
+experiments/
+
+# Data (large files)
+data/cmudict/
+data/experiment/
+data/samples/*.parquet
+data/samples/*.arrow
+
+# Reports — keep provenance manifests, ignore generated audit dumps
 reports/*.json
 !reports/.gitkeep
+!reports/experiment_protocol.json
+!reports/test_manifest.json
+!reports/cmudict_data_audit.json
 
 # MLflow
 mlruns/

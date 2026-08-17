@@ -31,6 +31,23 @@ Input Name ──► Normalization ──► Multilingual G2P Backends
 | `byt5-base` | Base ByT5 checkpoint | NOT a G2P model — requires fine-tuning |
 | `fine_tuned` | Fine-tuned ByT5 | Pending GPU experiment |
 
+## Experiment: ByT5 on CMUdict G2P
+
+A ByT5-small fine-tuning experiment was built on the `experiment/byt5-cmudict` branch to learn ARPAbet pronunciation from CMUdict (135k entries). The full pipeline is ready for a GPU run.
+
+**Status: `REAL_GPU_RUN_PENDING`** — no CUDA GPU available locally. A CPU smoke test validated the training chain (`dataset → forward/backward → checkpoint → inference → metric`) but the PER of 1.59 on 200 samples is **not a model performance result**; it only confirms the pipeline works. See `experiments/byt5-cmudict-001/byt5-cmudict-001/results.json` for smoke test details.
+
+**To run on GPU (Kaggle):**
+```bash
+git clone https://github.com/NostalgiaFleeting/PronunciaBench.git
+cd PronunciaBench
+git checkout experiment/byt5-cmudict
+pip install -e ".[dev]"
+python scripts/cmudict_import.py
+python scripts/run_byt5_cmudict.py --data-dir data/experiment --epochs 3 --batch-size 32 --gradient-accumulation 2
+```
+See `notebooks/kaggle_runner.ipynb` for the complete Kaggle-ready workflow with automatic GPU detection and OOM fallback.
+
 ## Dataset Provenance
 
 Data sources with explicit provenance:

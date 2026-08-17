@@ -1,0 +1,76 @@
+{
+  "generated_at": "2026-08-17T12:12:00.689006+00:00",
+  "git_sha": "1ab1ebc4",
+  "splits": {
+    "train": {
+      "sha256": "491a8fa98b2ef1d345a9810060e5e30c049cc8109a020898c88a4e45a0b6c24d",
+      "n_entries": 108068,
+      "n_unique_words": 94073,
+      "first_word": "A",
+      "last_word": "ZYWICKI"
+    },
+    "validation": {
+      "sha256": "f7f02566ebf585766e223c7671088cfdca14bdd63e5cbc6ce469cb9a14c78537",
+      "n_entries": 13452,
+      "n_unique_words": 11759,
+      "first_word": "AAA",
+      "last_word": "ZYCAD"
+    },
+    "calibration": {
+      "sha256": "bce165b1eaed718fcaa4573a3f6a1bc88c5020afd81f09fa23667727aef57bdc",
+      "n_entries": 6771,
+      "n_unique_words": 5879,
+      "first_word": "AARDEMA",
+      "last_word": "ZWART"
+    },
+    "test": {
+      "sha256": "c08f69ba9ecb2c0836ed9c4d10aab4023289192b053bf3e48681a36613bfe101",
+      "n_entries": 6838,
+      "n_unique_words": 5881,
+      "first_word": "ABATED",
+      "last_word": "ZYDECO"
+    }
+  },
+  "audit": {
+    "leakage_detected": false,
+    "total_overlapping_words": 0,
+    "pairwise": {
+      "train_vs_validation": {
+        "overlap_count": 0,
+        "overlapping_words": []
+      },
+      "train_vs_calibration": {
+        "overlap_count": 0,
+        "overlapping_words": []
+      },
+      "train_vs_test": {
+        "overlap_count": 0,
+        "overlapping_words": []
+      },
+      "validation_vs_calibration": {
+        "overlap_count": 0,
+        "overlapping_words": []
+      },
+      "validation_vs_test": {
+        "overlap_count": 0,
+        "overlapping_words": []
+      },
+      "calibration_vs_test": {
+        "overlap_count": 0,
+        "overlapping_words": []
+      }
+    },
+    "split_sizes": {
+      "train": 108068,
+      "validation": 13452,
+      "calibration": 6771,
+      "test": 6838
+    },
+    "unique_words_per_split": {
+      "train": 94073,
+      "validation": 11759,
+      "calibration": 5879,
+      "test": 5881
+    }
+  }
+}
