@@ -50,10 +50,6 @@ mlruns/
 .env
 .env.local
 
-# Data (large files)
-data/*.parquet
-data/*..arrow
-
 # OS
 .DS_Store
 Thumbs.db
