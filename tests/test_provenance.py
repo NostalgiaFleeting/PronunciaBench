@@ -42,7 +42,7 @@ class TestEspeakProvenance:
         pred = model.predict("Smith", "en-US")
         assert isinstance(pred.provenance, BackendProvenance)
         assert pred.provenance.requested_backend == "espeak"
-        assert pred.provenance.actual_backend in ("espeak", "segments", "none")
+        assert pred.provenance.actual_backend in ("espeak", "espeak-subprocess", "segments", "none")
         assert pred.provenance.backend_version is not None or pred.provenance.backend_version is None
 
     def test_fallback_flagged(self):
