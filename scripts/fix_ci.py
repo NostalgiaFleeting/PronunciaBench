@@ -57,7 +57,8 @@ with open(path, 'w', encoding='utf-8', newline='\n') as f:
 print('Written', len(fixed), 'bytes')
 
 # Verify YAML parses
-y = yaml.safe_load(open(path, encoding='utf-8'))
+with open(path, encoding='utf-8') as fh:
+    y = yaml.safe_load(fh)
 print('YAML parsed OK')
 print('Steps:', len(y['jobs']['test']['steps']))
 for i, step in enumerate(y['jobs']['test']['steps']):
