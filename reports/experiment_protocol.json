@@ -1,0 +1,50 @@
+{
+  "experiment_id": "byt5-cmudict-001",
+  "status": "REAL_GPU_RUN_PENDING",
+  "target_phone_system": "cmudict-arpabet",
+  "description": "Fine-tune google/byt5-small to map English words to CMUdict ARPAbet phoneme sequences with stress digits.",
+  "dataset": {
+    "source": "CMUdict (Carnegie Mellon Pronouncing Dictionary)",
+    "url": "https://github.com/cmusphinx/cmudict",
+    "revision": "master",
+    "file": "cmudict.dict",
+    "license": "Unrestricted (CMU copyright 1993-2015)",
+    "total_entries": 135166,
+    "english_only": true
+  },
+  "split": {
+    "method": "lexical-grouped deterministic",
+    "grouping_key": "lowercased word",
+    "proportions": { "train": 0.8, "validation": 0.1, "calibration": 0.05, "test": 0.05 },
+    "seed": 42
+  },
+  "model": {
+    "base_id": "google/byt5-small",
+    "fine_tuned_id": "byt5-cmudict",
+    "description": "byt5-base is a pretrained multilingual denoising autoencoder. byt5-cmudict is the fine-tuned G2P checkpoint."
+  },
+  "training": {
+    "epochs": 3,
+    "learning_rate": 1e-4,
+    "batch_size": 32,
+    "gradient_accumulation": 1,
+    "mixed_precision": "bf16",
+    "early_stopping_patience": 2,
+    "early_stopping_metric": "validation_per",
+    "seed": 42
+  },
+  "generation": {
+    "max_new_tokens": 128,
+    "num_beams": 1,
+    "no_repeat_ngram_size": 3,
+    "temperature": null,
+    "do_sample": false
+  },
+  "primary_metric": "phoneme_error_rate (PER) with stress",
+  "secondary_metrics": [
+    "exact_pronunciation_match",
+    "PER_without_stress"
+  ],
+  "phone_separator": " ",
+  "stress_preserved": true
+}
