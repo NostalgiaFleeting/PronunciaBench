@@ -17,13 +17,29 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install system deps
+      - name: Install system deps (eSpeak-NG for real backend)
         run: sudo apt-get update && sudo apt-get install -y espeak-ng
 
       - name: Install Python deps
         run: |
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
+
+      - name: Verify eSpeak-NG is available
+        run: espeak-ng --version
+
+      - name: Set eSpeak library path for phonemizer
+        run: |
+          LIB_PATH=$(find /usr/lib /usr/local/lib -name 'libespeak-ng*.so*' -type f 2>/dev/null | head -1)
+          if [ -z "$LIB_PATH" ]; then
+            LIB_PATH=$(find / -name 'libespeak-ng*.so*' -type f 2>/dev/null | head -1)
+          fi
+          echo "Found eSpeak library: $LIB_PATH"
+          if [ -n "$LIB_PATH" ]; then
+            echo "PHONEMIZER_ESPEAK_LIBRARY=$LIB_PATH" >> $GITHUB_ENV
+          else
+            echo "WARNING: eSpeak library not found"
+          fi
 
       - name: Lint
         run: ruff check src/ tests/
@@ -34,8 +50,12 @@ jobs:
       - name: Run tests
         run: pytest tests/ -v --tb=short -x
 
-      - name: Run mini benchmark
+      - name: Run mini benchmark with real backend
         run: python -m pronunciabench.cli.main benchmark --dataset data/samples/test.jsonl --output /tmp/bench.json
 
-      - name: Verify benchmark output
-        run: python -c "import json; d=json.load(open('/tmp/bench.json')); assert 'reports' in d; assert d['n_examples'] > 0"
+      - name: Verify benchmark used real backend
+        run: |
+          python -c "import json; d=json.load(open('/tmp/bench.json')); print('benchmark_valid:', d['benchmark_valid']); print('fallback_detected:', d['fallback_detected']); print('n_examples:', d['n_examples']); reports=d['reports']; espeak=reports.get('espeak', {}); print('espeak_per:', espeak.get('phoneme_error_rate')); print('espeak_any_fallback:', espeak.get('any_fallback')); print('n_samples:', espeak.get('n_samples')); assert d['benchmark_valid'] == True, f'Expected valid benchmark, got: {d}'; assert not d['fallback_detected'], 'Fallback was used!'; assert espeak.get('phoneme_error_rate', 1.0) < 1.0, 'PER should be < 1.0 with real backend'; print('eSpeak PER:', espeak.get('phoneme_error_rate'))"
+
+      - name: Verify provenance tracking
+        run: python -c "from pronunciabench.models.espeak import EspeakG2P; m=EspeakG2P(language='en-us'); p=m.predict('Smith','en-US'); assert p.provenance.is_real_prediction, f'Expected real prediction, got: {p.provenance}'; assert p.provenance.actual_backend in ('espeak', 'espeak-subprocess'), f'Expected espeak backend, got: {p.provenance.actual_backend}'; print(f'Backend: {p.provenance.actual_backend}, version: {p.provenance.backend_version}'); print(f'Prediction: {p.prediction}')"

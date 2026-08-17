@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-import numpy as np
-
 from pronunciabench.data.models import PronunciationPrediction
 from pronunciabench.evaluation.metrics import (
     Evaluator,

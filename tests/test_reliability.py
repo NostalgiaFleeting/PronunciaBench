@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from pronunciabench.data.models import AbstentionDecision
 from pronunciabench.reliability.scorer import ConformalAbstainer, ReliabilityScorer
 

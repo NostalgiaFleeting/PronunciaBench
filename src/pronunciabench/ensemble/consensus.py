@@ -144,7 +144,7 @@ class ConsensusEngine:
 
         outliers = []
         threshold = 1.0 - agreement
-        for model in self.norm_predictions:
+        for _model in self.norm_predictions:
             # Use model name from predictions
             pass
 

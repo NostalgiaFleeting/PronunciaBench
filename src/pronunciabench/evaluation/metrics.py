@@ -11,7 +11,6 @@ import numpy as np
 from pronunciabench.data.models import PronunciationPrediction
 from pronunciabench.data.normalize import (
     character_error_rate,
-    exact_match_accuracy,
     normalize_ipa,
     phoneme_error_rate,
 )
@@ -114,7 +113,7 @@ class Evaluator:
     def compute_metrics(self) -> ModelMetrics:
         """Compute aggregate metrics for all predictions."""
         filtered: list[tuple[PronunciationPrediction, str]] = []
-        for pred, ref in zip(self.predictions, self.references):
+        for pred, ref in zip(self.predictions, self.references, strict=True):
             if self.locale_filter and pred.locale != self.locale_filter:
                 continue
             filtered.append((pred, ref))
@@ -149,7 +148,7 @@ class Evaluator:
     def compute_breakdown_by_locale(self) -> dict[str, ModelMetrics]:
         """Break down metrics by locale."""
         by_locale: dict[str, list[tuple[PronunciationPrediction, str]]] = defaultdict(list)
-        for pred, ref in zip(self.predictions, self.references):
+        for pred, ref in zip(self.predictions, self.references, strict=True):
             loc = pred.locale or "unknown"
             by_locale[loc].append((pred, ref))
 
@@ -179,7 +178,7 @@ def paired_bootstrap_comparison(
 
     rng = np.random.default_rng(seed)
     n = len(per_a)
-    deltas = [b - a for a, b in zip(per_a, per_b)]
+    deltas = [b - a for a, b in zip(per_a, per_b, strict=True)]
 
     wins, ties, losses = 0, 0, 0
     boot_deltas: list[float] = []

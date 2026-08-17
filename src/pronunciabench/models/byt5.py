@@ -1,31 +1,48 @@
-"""ByT5 pretrained G2P backend."""
+"""ByT5 base checkpoint — NOT a pretrained G2P model.
+
+`google/byt5-small` is a general-purpose byte-level seq2seq model pretrained
+on multilingual denoising. It has NOT been trained for grapheme-to-phoneme
+conversion. Using it without fine-tuning will produce meaningless output.
+
+This class exists to support fine-tuning experiments. After training on
+G2P data, the resulting checkpoint should be labeled as a "fine-tuned G2P
+model" rather than a "pretrained G2P model."
+"""
 
 from __future__ import annotations
 
 
 class ByT5G2P:
-    """Pretrained ByT5 sequence-to-sequence G2P model.
+    """Base ByT5 checkpoint for G2P fine-tuning experiments.
 
-    Uses a character-level transformer for grapheme-to-phoneme conversion.
-    Model ID is configurable via constructor.
+    WARNING: This is NOT a pretrained G2P model. `google/byt5-small` is a
+    general-purpose seq2seq model. Predictions from this checkpoint without
+    fine-tuning are meaningless and should not be used for evaluation.
+
+    After fine-tuning on pronunciation data, save the checkpoint separately
+    and load it with a different class or label to distinguish it from the
+    base model.
     """
 
-    model_name = "byt5"
+    model_name = "byt5-base"  # Renamed from "byt5" to avoid confusion
 
-    def __init__(self, model_id: str = "google/byt5-small"):
+    def __init__(self, model_id: str = "google/byt5-small", fine_tuned_path: str | None = None):
         self.model_id = model_id
+        self.fine_tuned_path = fine_tuned_path
         self._tokenizer = None
         self._model = None
         self._loaded = False
+        self._is_fine_tuned = fine_tuned_path is not None
 
     def _load(self) -> None:
         if self._loaded:
             return
         try:
             import torch
-            from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-            self._tokenizer = AutoTokenizer.from_pretrained(self.model_id)
-            self._model = AutoModelForSeq2SeqLM.from_pretrained(self.model_id)
+            from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+            load_path = self.fine_tuned_path or self.model_id
+            self._tokenizer = AutoTokenizer.from_pretrained(load_path)
+            self._model = AutoModelForSeq2SeqLM.from_pretrained(load_path)
             self._torch = torch
             self._loaded = True
         except ImportError:
@@ -34,15 +51,42 @@ class ByT5G2P:
             self._model = None
 
     def predict(self, text: str, locale: str | None = None):
-        """Run prediction and return PronunciationPrediction."""
+        """Run prediction. Returns placeholder if model not fine-tuned."""
         import time
-        from pronunciabench.data.models import PronunciationPrediction
+
+        from pronunciabench.data.models import BackendProvenance, PronunciationPrediction
         start = time.perf_counter()
+
+        if not self._is_fine_tuned:
+            # Base model — not a G2P model
+            provenance = BackendProvenance(
+                requested_backend="byt5",
+                actual_backend="byt5-base",
+                backend_version=self.model_id,
+                fallback_used=True,
+                is_real_prediction=False,
+            )
+            elapsed = (time.perf_counter() - start) * 1000
+            return PronunciationPrediction(
+                model_name=self.model_name, model_version=self.model_id,
+                prediction=f"/[{text}]/", locale=locale,
+                latency_ms=round(elapsed, 2), provenance=provenance,
+            )
+
+        self._load()
         prediction = self._predict_impl(text, locale)
         elapsed_ms = (time.perf_counter() - start) * 1000
+        provenance = BackendProvenance(
+            requested_backend="byt5",
+            actual_backend="byt5-fine-tuned",
+            backend_version=self.fine_tuned_path or self.model_id,
+            fallback_used=False,
+            is_real_prediction=True,
+        )
         return PronunciationPrediction(
-            model_name=self.model_name, model_version=self.model_id,
+            model_name=self.model_name, model_version=self.fine_tuned_path or self.model_id,
             prediction=prediction, locale=locale, latency_ms=round(elapsed_ms, 2),
+            provenance=provenance,
         )
 
     def _predict_impl(self, text: str, locale: str | None) -> str:

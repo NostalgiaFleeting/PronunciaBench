@@ -2,17 +2,11 @@
 
 from __future__ import annotations
 
-import warnings
-
+from pronunciabench.data.models import BackendProvenance, PronunciationPrediction
 from pronunciabench.models.base import BaseG2PModel
 
 
 class EspeakG2P(BaseG2PModel):
-    """Rule-based G2P using eSpeak-NG via the phonemizer package.
-
-    Falls back to the `segments` backend if eSpeak-NG is not installed.
-    """
-
     model_name = "espeak"
 
     _LOCALE_MAP: dict[str, str] = {
@@ -32,53 +26,126 @@ class EspeakG2P(BaseG2PModel):
     def __init__(self, language: str | None = None, preserve_punctuation: bool = True):
         self._language = language
         self._preserve_punctuation = preserve_punctuation
-        self._backend_used = "unknown"
+        self._backend_used = "none"
+        self._backend_version: str | None = None
+        self._phonemize = None
         self._init_backend(language or "en-us")
 
     def _init_backend(self, language: str) -> None:
-        """Initialize the phonemizer backend, with fallbacks."""
-        # Try eSpeak first
         try:
-            from phonemizer.backend import ESpeakBackend
+            import phonemizer
+            self._backend_version = phonemizer.__version__
+        except ImportError:
+            self._backend_version = None
+        try:
             from phonemizer import phonemize
+            # On Linux, phonemizer may not find espeak library automatically.
+            # Try to locate and set it programmatically.
+            try:
+                import subprocess
+
+                from phonemizer.backend.espeak.wrapper import EspeakWrapper
+                lib_path = None
+                if subprocess.run(["which", "espeak-ng"], capture_output=True).returncode == 0:
+                    result = subprocess.run(
+                        ["ldconfig", "-p"], capture_output=True, text=True
+                    )
+                    for line in result.stdout.splitlines():
+                        if "libespeak-ng" in line and ".so" in line:
+                            lib_path = line.strip().split()[-1]
+                            break
+                if not lib_path:
+                    lib_path = "/usr/lib/x86_64-linux-gnu/libespeak-ng.so.1"
+                if EspeakWrapper.set_library:
+                    EspeakWrapper.set_library(lib_path)
+            except Exception:
+                pass
             self._phonemize = phonemize
             self._backend_used = "espeak"
+            try:
+                import subprocess
+                result = subprocess.run(["espeak-ng", "--version"], capture_output=True, text=True, timeout=5)
+                if result.returncode == 0:
+                    self._backend_version = result.stdout.strip().split()[0]
+            except Exception:
+                pass
             return
         except (ImportError, RuntimeError):
             pass
-
-        # Fallback to segments backend
         try:
-            from phonemizer.backend import SegmentsBackend
             from phonemizer import phonemize
             self._phonemize = phonemize
             self._backend_used = "segments"
             return
         except ImportError:
             pass
-
-        # Ultimate fallback
         self._phonemize = None
         self._backend_used = "none"
 
-    def _predict_impl(self, text: str, locale: str | None) -> str:
+    def _predict_impl(self, text: str, locale: str | None) -> tuple[str, BackendProvenance]:
+        fallback = f"/[{text}]/"
         if self._phonemize is None:
-            return f"/[{text}]/"
-
+            provenance = BackendProvenance(
+                requested_backend="espeak", actual_backend="none",
+                backend_version=self._backend_version, fallback_used=True, is_real_prediction=False,
+            )
+            return fallback, provenance
         lang = locale or self._language or "en-us"
         phonemize_lang = self._LOCALE_MAP.get(lang, lang.split("-")[0])
-
+        # Try phonemizer first
         try:
-            if self._backend_used == "espeak":
-                result = self._phonemize(
-                    [text], language=phonemize_lang, backend="espeak",
-                    preserve_punctuation=self._preserve_punctuation, with_stress=True,
+            if self._phonemize is not None:
+                if self._backend_used == "espeak":
+                    result = self._phonemize(
+                        [text], language=phonemize_lang, backend="espeak",
+                        preserve_punctuation=self._preserve_punctuation, with_stress=True,
+                    )
+                else:
+                    result = self._phonemize(
+                        [text], language=phonemize_lang, backend="segments",
+                        preserve_punctuation=False, with_stress=False,
+                    )
+                prediction = result.strip() if result else fallback
+                is_real = prediction != fallback
+                provenance = BackendProvenance(
+                    requested_backend="espeak", actual_backend=self._backend_used,
+                    backend_version=self._backend_version, fallback_used=not is_real, is_real_prediction=is_real,
                 )
-            else:
-                result = self._phonemize(
-                    [text], language=phonemize_lang, backend="segments",
-                    preserve_punctuation=False, with_stress=False,
-                )
-            return result.strip() if result else f"/[{text}]/"
+                return prediction, provenance
         except Exception:
-            return f"/[{text}]/"
+            pass
+        # Fallback: call espeak-ng directly via subprocess
+        try:
+            import subprocess
+            result = subprocess.run(
+                ["espeak-ng", "-v", phonemize_lang, "-q", "--ipa=XIPA", text],
+                capture_output=True, text=True, timeout=10,
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                prediction = result.stdout.strip()
+                provenance = BackendProvenance(
+                    requested_backend="espeak", actual_backend="espeak-subprocess",
+                    backend_version=self._backend_version, fallback_used=False, is_real_prediction=True,
+                )
+                return prediction, provenance
+        except Exception:
+            pass
+        provenance = BackendProvenance(
+            requested_backend="espeak", actual_backend=self._backend_used,
+            backend_version=self._backend_version, fallback_used=True, is_real_prediction=False,
+        )
+        return fallback, provenance
+
+    def predict(self, text: str, locale: str | None = None) -> PronunciationPrediction:
+        import time
+        start = time.perf_counter()
+        prediction, provenance = self._predict_impl(text, locale)
+        elapsed_ms = (time.perf_counter() - start) * 1000
+        return PronunciationPrediction(
+            model_name=self.model_name, model_version=self._backend_used,
+            prediction=prediction, locale=locale,
+            latency_ms=round(elapsed_ms, 2), provenance=provenance,
+        )
+
+    def predict_batch(self, texts: list[str], locale: str | None = None) -> list:
+        return [self.predict(text, locale) for text in texts]

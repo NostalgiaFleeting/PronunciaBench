@@ -3,12 +3,9 @@
 from __future__ import annotations
 
 import json
-import tempfile
 from pathlib import Path
 
-import pytest
-
-from pronunciabench.data import load_jsonl, compute_stats, generate_report, split_dataset
+from pronunciabench.data import compute_stats, generate_report, load_jsonl, split_dataset
 from pronunciabench.data.models import PronunciationExample, VerificationStatus
 
 

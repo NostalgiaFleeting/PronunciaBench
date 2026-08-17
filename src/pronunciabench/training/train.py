@@ -5,15 +5,13 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Any
 
 import torch
-from torch.utils.data import Dataset, DataLoader
+from torch.optim import AdamW
+from torch.utils.data import DataLoader, Dataset
 from transformers import (
-    AutoTokenizer,
     AutoModelForSeq2SeqLM,
-    AdamW,
+    AutoTokenizer,
     get_linear_schedule_with_warmup,
 )
 
@@ -77,7 +75,7 @@ class G2PDataset(Dataset):
 def load_dataset_from_jsonl(path: str) -> list[dict]:
     """Load training data from JSONL file."""
     examples = []
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if line:

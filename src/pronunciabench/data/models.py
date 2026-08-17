@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Protocol, runtime_checkable
 
@@ -15,6 +15,14 @@ class VerificationStatus(str, Enum):
     VERIFIED = "verified"
     UNVERIFIED = "unverified"
     EXPLORATORY = "exploratory"
+
+
+class PhonemeSystem(str, Enum):
+    """Phoneme representation system used in pronunciation labels."""
+
+    IPA = "ipa"
+    ARPABET = "arpabet"
+    UNKNOWN = "unknown"
 
 
 class AbstentionDecision(str, Enum):
@@ -31,6 +39,10 @@ class PronunciationExample(BaseModel):
     source: str
     split: str | None = None
     verification_status: VerificationStatus = VerificationStatus.UNVERIFIED
+    phoneme_system: PhonemeSystem = PhonemeSystem.UNKNOWN
+    source_url: str | None = None
+    source_license: str | None = None
+    source_version: str | None = None
     notes: str = ""
 
     @field_validator("text")
@@ -44,6 +56,16 @@ class PronunciationExample(BaseModel):
         return v.strip()
 
 
+class BackendProvenance(BaseModel):
+    """Tracks which backend actually produced a prediction."""
+
+    requested_backend: str = "unknown"
+    actual_backend: str = "unknown"
+    backend_version: str | None = None
+    fallback_used: bool = False
+    is_real_prediction: bool = False
+
+
 class PronunciationPrediction(BaseModel):
     """Output from a single G2P backend."""
 
@@ -53,7 +75,7 @@ class PronunciationPrediction(BaseModel):
     prediction: str
     confidence: float | None = None
     latency_ms: float = 0.0
-    provenance: dict = Field(default_factory=dict)
+    provenance: BackendProvenance = Field(default_factory=BackendProvenance)
 
     @field_validator("confidence")
     @classmethod
@@ -70,7 +92,8 @@ class ReliabilityResult(BaseModel):
     components: dict[str, float]
     decision: AbstentionDecision
     reason: str
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    is_calibrated_probability: bool = False
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     @field_validator("confidence")
     @classmethod
