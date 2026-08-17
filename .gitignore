@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+pip-wheel-metadata/
+
+# Virtual env
+venv/
+env/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Tests
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Artifacts
+artifacts/
+reports/*.json
+!reports/.gitkeep
+
+# MLflow
+mlruns/
+.mlflow/
+
+# Environment
+.env
+.env.local
+
+# Data (large files)
+data/*.parquet
+data/*..arrow
+
+# OS
+.DS_Store
+Thumbs.db
