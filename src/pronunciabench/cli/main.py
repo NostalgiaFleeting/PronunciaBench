@@ -8,11 +8,10 @@ from pathlib import Path
 
 import click
 
-from pronunciabench.data.models import PronunciationPrediction
-from pronunciabench.models.espeak import EspeakG2P
+from pronunciabench.data.normalize import phoneme_error_rate
 from pronunciabench.ensemble.consensus import ConsensusEngine
+from pronunciabench.models.espeak import EspeakG2P
 from pronunciabench.reliability.scorer import ReliabilityScorer
-from pronunciabench.data.normalize import phoneme_error_rate, normalize_ipa
 
 
 @click.group()
@@ -37,7 +36,7 @@ def pronounce(text: str, locale: str | None, models: str, output: str | None) ->
         backends["espeak"] = EspeakG2P(language=locale)
 
     predictions = []
-    for name, backend in backends.items():
+    for _name, backend in backends.items():
         if hasattr(backend, "predict"):
             predictions.append(backend.predict(text, locale))
 
@@ -86,7 +85,7 @@ def benchmark(dataset: str, models: str, locale: str | None, output: str | None,
         sys.exit(1)
 
     examples = []
-    with open(data_path, "r", encoding="utf-8") as f:
+    with open(data_path, encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if line:
@@ -171,6 +170,7 @@ def benchmark(dataset: str, models: str, locale: str | None, output: str | None,
 def compare(model_a: str, model_b: str, dataset: str) -> None:
     """Compare two models using paired bootstrap test."""
     import numpy as np
+
     from pronunciabench.evaluation.metrics import paired_bootstrap_comparison
 
     data_path = Path(dataset)
@@ -179,7 +179,7 @@ def compare(model_a: str, model_b: str, dataset: str) -> None:
         sys.exit(1)
 
     examples = []
-    with open(data_path, "r", encoding="utf-8") as f:
+    with open(data_path, encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if line:

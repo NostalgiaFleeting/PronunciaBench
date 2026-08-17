@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 import re
-from functools import lru_cache
-
+from functools import cache
 
 # IPA stress markers (primary ˈ, secondary ˌ)
 _STRESS_MARKS = set("ˈˌ")
@@ -25,7 +24,7 @@ _VARIANT_MAP: dict[str, str] = {
 }
 
 
-@lru_cache(maxsize=None)
+@cache
 def normalize_ipa(ipa: str) -> str:
     """Normalize an IPA string for comparison.
 
@@ -63,7 +62,7 @@ def normalize_ipa(ipa: str) -> str:
     return normalized.lower()
 
 
-@lru_cache(maxsize=None)
+@cache
 def extract_phonemes(ipa: str) -> list[str]:
     """Split an IPA string into individual phoneme tokens."""
     if not ipa:
@@ -71,7 +70,7 @@ def extract_phonemes(ipa: str) -> list[str]:
 
     ipa = normalize_ipa(ipa)
 
-    DIGRAPHS = {
+    digraphs = {
         "tʃ", "dʒ", "ŋ", "ɲ", "ʃ", "ʒ", "ʂ", "ʐ",
         "ts", "dz", "tɬ", "dɮ", "tf", "df",
         "ɡʷ", "kʷ", "xʷ", "ɣʷ",
@@ -88,7 +87,7 @@ def extract_phonemes(ipa: str) -> list[str]:
         for length in (3, 2):
             if i + length <= len(ipa):
                 sub = ipa[i : i + length]
-                if sub in DIGRAPHS:
+                if sub in digraphs:
                     phonemes.append(sub)
                     i += length
                     matched = True

@@ -38,7 +38,6 @@ class EspeakG2P(BaseG2PModel):
         except ImportError:
             self._backend_version = None
         try:
-            from phonemizer.backend import ESpeakBackend
             from phonemizer import phonemize
             self._phonemize = phonemize
             self._backend_used = "espeak"
@@ -53,7 +52,6 @@ class EspeakG2P(BaseG2PModel):
         except (ImportError, RuntimeError):
             pass
         try:
-            from phonemizer.backend import SegmentsBackend
             from phonemizer import phonemize
             self._phonemize = phonemize
             self._backend_used = "segments"

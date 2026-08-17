@@ -42,16 +42,15 @@ class TestTrainingSmoke:
     def test_train_model_smoke(self):
         """Run a minimal training step with a tiny test model if available."""
         try:
-            import torch
-            from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
-            has_transformers = True
+            import transformers  # noqa: F401
         except ImportError:
             pytest.skip("transformers not available")
             return
 
-        from pronunciabench.training.train import train_model, TrainingConfig
-        import tempfile
         import json
+        import tempfile
+
+        from pronunciabench.training.train import TrainingConfig, train_model
 
         # Create tiny train/eval data
         with tempfile.TemporaryDirectory() as tmpdir:

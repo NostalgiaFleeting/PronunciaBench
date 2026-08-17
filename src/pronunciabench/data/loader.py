@@ -52,7 +52,7 @@ class DatasetStats:
 
 def load_jsonl(path: str) -> list[PronunciationExample]:
     examples = []
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if line:
@@ -95,7 +95,7 @@ def audit_leakage(examples: list[PronunciationExample]) -> LeakageReport:
     for ex in examples:
         key = (ex.pronunciation.lower().strip(), ex.locale or "")
         pron_map.setdefault(key, []).append(ex)
-    for key, exs in pron_map.items():
+    for _key, exs in pron_map.items():
         if len(exs) > 1:
             report.duplicate_pronunciations.append((exs[0].text, exs[1].text))
     return report
