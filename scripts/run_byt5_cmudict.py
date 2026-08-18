@@ -564,6 +564,11 @@ def run_experiment(args: argparse.Namespace) -> None:
     try:
         train_result = trainer.train()
     except torch.cuda.OutOfMemoryError as e:
+        if args.strict_config:
+            raise RuntimeError(
+                f"OOM in strict-config mode — training config is frozen and will not change. "
+                f"Reduce --batch-size or switch to --optimizer adafactor, then retry.\n{e}"
+            ) from e
         print(f"\nOOM at batch_size={args.batch_size}: {e}")
         print("Falling back to smaller batch sizes...")
         train_result = _train_with_oom_fallback(trainer, model, args, use_bf16, use_fp16)
@@ -739,6 +744,8 @@ def main() -> None:
     parser.add_argument("--logging-steps", type=int, default=100, help="Logging interval in steps")
     parser.add_argument("--amp-backend", choices=["auto", "bf16", "fp16", "fp32"], default="auto",
                         help="Mixed precision backend (auto: bf16 on Ampere+, fp16 on Turing+, fp32 on Pascal)")
+    parser.add_argument("--strict-config", action="store_true",
+                        help="Disable OOM auto-fallback; abort on OOM instead (use for formal experiment runs)")
     args = parser.parse_args()
     if args.max_samples:
         print(f"Running smoke test with max {args.max_samples} samples per split")

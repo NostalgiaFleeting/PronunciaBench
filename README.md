@@ -29,7 +29,7 @@ Input Name ──► Normalization ──► Multilingual G2P Backends
 |---------|------|--------|
 | `espeak` | Rule-based (eSpeak-NG) | Validated on Linux with espeak-ng installed |
 | `byt5-base` | Base ByT5 checkpoint | NOT a G2P model — requires fine-tuning |
-| `fine_tuned` | Fine-tuned ByT5 | Pending GPU experiment |
+| `fine_tuned` | Fine-tuned ByT5 on CMUdict ARPAbet | `REAL_GPU_RUN_PENDING` — see GPU setup below |
 
 ## Experiment: ByT5 on CMUdict G2P
 
@@ -39,33 +39,47 @@ A ByT5-small fine-tuning experiment was built on the `experiment/byt5-cmudict` b
 
 ### Local GPU setup (GTX 1070 / 8GB VRAM)
 
-The machine has a GTX 1070 (Pascal, CC 6.1, 8 GB) confirmed by `nvidia-smi`. To use it:
+The machine has a GTX 1070 (Pascal, CC 6.1, 8 GB) confirmed by `nvidia-smi`. Python 3.13 has no CUDA wheels; use the isolated `.venv-gpu` environment with Python 3.12:
 
-```bash
-# Python 3.12 is installed alongside 3.13; use it for CUDA PyTorch
-py -3.12 -m ensurepip --upgrade
-py -3.12 -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+```powershell
+# One-time setup (already done; skip if .venv-gpu exists)
+py -3.12 -m venv .venv-gpu
+.\.venv-gpu\Scripts\python.exe -m pip install --upgrade pip setuptools wheel
+.\.venv-gpu\Scripts\python.exe -m pip install "torch==2.5.1+cu121" --index-url https://download.pytorch.org/whl/cu121
+
+# Verify GPU and sm_61 support before training
+.\.venv-gpu\Scripts\python.exe -c "import torch; print('torch=',torch.__version__); print('cuda=',torch.version.cuda); print('avail=',torch.cuda.is_available()); print('gpu=',torch.cuda.get_device_name(0)); print('cap=',torch.cuda.get_device_capability(0)); print('archs=',torch.cuda.get_arch_list())"
+
 pip install -e ".[dev,train]"
-
-python scripts/cmudict_import.py
-python scripts/run_byt5_cmudict.py --data-dir data/experiment \
-    --batch-size 1 --gradient-accumulation 32 --gradient-checkpointing \
-    --optimizer adafactor --amp-backend auto
 ```
 
-Canary validation (100 steps, no frozen test):
-```bash
-python scripts/run_byt5_cmudict.py --data-dir data/experiment \
-    --batch-size 1 --gradient-accumulation 32 --gradient-checkpointing \
-    --optimizer adafactor --max-steps 100
+**Critical check:** `torch.cuda.get_arch_list()` must contain `sm_61` (Pascal). If it does not, the wheel lacks native kernels for this GPU and you must try a different build.
+
+**Canary validation** (20 steps — fast hardware sanity check, never opens frozen test):
+```powershell
+.\.venv-gpu\Scripts\python.exe scripts/run_byt5_cmudict.py `
+    --data-dir data/experiment `
+    --batch-size 1 --gradient-accumulation 32 --gradient-checkpointing `
+    --optimizer adafactor --max-steps 20
+```
+
+Confirm before proceeding: CUDA is active, VRAM stable, no OOM, loss finite, no NaN.
+
+**Full experiment** (after canary passes; use `--strict-config` to freeze the protocol):
+```powershell
+.\.venv-gpu\Scripts\python.exe scripts/run_byt5_cmudict.py `
+    --data-dir data/experiment `
+    --epochs 3 --batch-size 1 --gradient-accumulation 32 `
+    --gradient-checkpointing --optimizer adafactor --strict-config
 ```
 
 **GPU config notes:**
-- Pascal (CC 6.x) has **no BF16** — script starts in fp32, falls back to fp16 only if OOM
+- Pascal (CC 6.x) has **no BF16** — script starts in fp32; `--strict-config` prevents any hidden fallback to fp16
 - `--gradient-checkpointing` is on by default (trades compute for VRAM)
 - `--optimizer adafactor` recommended for 8 GB cards (AdamW uses ~2× optimizer state memory)
-- OOM auto-fallback: halves batch size and/or switches optimizer until training succeeds
+- `--strict-config` → OOM aborts immediately; do NOT silently change batch size or precision during formal run
 - Target effective batch: 32 (= `batch_size × gradient_accumulation`)
+- **Never install `torchvision`** — unused by this project and only adds version-conflict surface
 
 **Kaggle as Plan B:**
 ```bash
