@@ -757,7 +757,7 @@ def build_protocol_references(strict: bool) -> dict[str, Any]:
             raise FileNotFoundError(f"Required protocol file not found: {path}")
         canonical_hash = sha256_canonical_text(path)
         working_tree_raw_hash = sha256_file(path)
-        matches_frozen_reference = canonical_hash.lower() == expected_hash
+        matches_frozen_reference = canonical_hash.casefold() == expected_hash.casefold()
         if strict and not matches_frozen_reference:
             raise RuntimeError(
                 f"Strict protocol hash mismatch for {path} under "

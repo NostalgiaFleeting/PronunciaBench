@@ -542,6 +542,26 @@ def test_strict_protocol_validation_accepts_lf_and_crlf(
         assert reference["canonical_sha256"] == reference["expected_canonical_sha256"]
 
 
+def test_strict_protocol_validation_accepts_uppercase_expected_hashes(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.setattr(
+        experiment,
+        "EXPECTED_PROTOCOL_SHA256",
+        experiment.EXPECTED_PROTOCOL_SHA256.upper(),
+    )
+    monkeypatch.setattr(
+        experiment,
+        "EXPECTED_TEST_MANIFEST_SHA256",
+        experiment.EXPECTED_TEST_MANIFEST_SHA256.upper(),
+    )
+
+    references = experiment.build_protocol_references(strict=True)
+
+    assert references["experiment_protocol"]["matches_frozen_reference"] is True
+    assert references["test_manifest"]["matches_frozen_reference"] is True
+
+
 def test_strict_protocol_validation_rejects_content_change(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

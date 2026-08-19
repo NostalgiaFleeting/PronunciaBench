@@ -179,5 +179,8 @@ cross-platform identity is
 `7B5D7D204837D2FD8480F0E793EE00E556E27ACF1E32CB88F8E3A757CD3C8321`, matching the LF
 content stored by Git.
 
+Hashes are shown in uppercase for audit readability. Hexadecimal SHA-256 casing has no semantic
+meaning, and strict validation compares canonical and expected hashes case-insensitively.
+
 This migration corrects provenance and hash semantics only. It does not change the scientific
 protocol, frozen-test content, split membership, or test-set metrics.
