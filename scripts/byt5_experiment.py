@@ -38,8 +38,13 @@ PHONE_SEPARATOR = " "
 DEFAULT_EXPERIMENT_DIR = Path("experiments") / EXPERIMENT_ID
 EXPERIMENT_PROTOCOL_PATH = Path("reports/experiment_protocol.json")
 TEST_MANIFEST_PATH = Path("reports/test_manifest.json")
+PROTOCOL_HASH_ALGORITHM = "sha256"
+PROTOCOL_HASH_SEMANTICS = "canonical-text-lf-v1"
 EXPECTED_PROTOCOL_SHA256 = "b1cc34ec06832e22b15976066954d8be21dfaa427230482f7bae0d63e10ccbcc"
 EXPECTED_TEST_MANIFEST_SHA256 = (
+    "7b5d7d204837d2fd8480f0e793ee00e556e27acf1e32cb88f8e3a757cd3c8321"
+)
+LEGACY_WINDOWS_TEST_MANIFEST_RAW_SHA256 = (
     "a5058b9b75e450bb62f40d9ae3ab22f477b7b90516f7f3e4b0a9c252d18c43f9"
 )
 CHECKPOINT_PATTERN = re.compile(r"^checkpoint-(\d+)$")
@@ -730,28 +735,46 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def sha256_canonical_text(path: Path) -> str:
+    """Hash text bytes after normalizing only CRLF and lone CR line endings to LF."""
+    payload = path.read_bytes()
+    canonical_payload = payload.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+    return hashlib.sha256(canonical_payload).hexdigest()
+
+
 def build_protocol_references(strict: bool) -> dict[str, Any]:
-    """Record immutable protocol files and optionally enforce their known hashes."""
+    """Record immutable protocol files using platform-independent text hashes."""
     references: dict[str, Any] = {}
     expected_hashes = {
         "experiment_protocol": (EXPERIMENT_PROTOCOL_PATH, EXPECTED_PROTOCOL_SHA256),
         "test_manifest": (TEST_MANIFEST_PATH, EXPECTED_TEST_MANIFEST_SHA256),
     }
+    legacy_windows_raw_hashes = {
+        "test_manifest": LEGACY_WINDOWS_TEST_MANIFEST_RAW_SHA256,
+    }
     for name, (path, expected_hash) in expected_hashes.items():
         if not path.is_file():
             raise FileNotFoundError(f"Required protocol file not found: {path}")
-        actual_hash = sha256_file(path)
-        if strict and actual_hash.lower() != expected_hash:
+        canonical_hash = sha256_canonical_text(path)
+        working_tree_raw_hash = sha256_file(path)
+        matches_frozen_reference = canonical_hash.lower() == expected_hash
+        if strict and not matches_frozen_reference:
             raise RuntimeError(
-                f"Strict protocol hash mismatch for {path}: expected {expected_hash}, "
-                f"found {actual_hash}"
+                f"Strict protocol hash mismatch for {path} under "
+                f"{PROTOCOL_HASH_SEMANTICS}: expected {expected_hash}, "
+                f"found {canonical_hash}"
             )
         references[name] = {
             "path": str(path),
-            "sha256": actual_hash,
-            "expected_sha256": expected_hash,
-            "matches_frozen_reference": actual_hash.lower() == expected_hash,
+            "hash_algorithm": PROTOCOL_HASH_ALGORITHM,
+            "hash_semantics": PROTOCOL_HASH_SEMANTICS,
+            "canonical_sha256": canonical_hash,
+            "expected_canonical_sha256": expected_hash,
+            "working_tree_raw_sha256": working_tree_raw_hash,
+            "matches_frozen_reference": matches_frozen_reference,
         }
+        if legacy_windows_raw_hash := legacy_windows_raw_hashes.get(name):
+            references[name]["legacy_windows_working_tree_sha256"] = legacy_windows_raw_hash
     manifest = json.loads(TEST_MANIFEST_PATH.read_text(encoding="utf-8"))
     references["test_manifest"]["canonical_test_content_sha256"] = manifest.get(
         "test_sha256"

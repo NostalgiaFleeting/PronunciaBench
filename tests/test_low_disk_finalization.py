@@ -482,11 +482,98 @@ def test_canonical_split_hash_matches_manifest_representation(tmp_path: Path):
     assert variants == 2
 
 
+def canonical_lf_payload(path: Path) -> bytes:
+    return path.read_bytes().replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+
+
+def test_canonical_text_hash_normalizes_lf_crlf_and_lone_cr(tmp_path: Path):
+    manifest_lf = canonical_lf_payload(experiment.TEST_MANIFEST_PATH)
+    assert experiment.hashlib.sha256(manifest_lf).hexdigest() == (
+        experiment.EXPECTED_TEST_MANIFEST_SHA256
+    )
+
+    representations = {
+        "lf.json": manifest_lf,
+        "crlf.json": manifest_lf.replace(b"\n", b"\r\n"),
+        "cr.json": manifest_lf.replace(b"\n", b"\r"),
+    }
+    for name, payload in representations.items():
+        path = tmp_path / name
+        path.write_bytes(payload)
+        assert experiment.sha256_canonical_text(path) == (
+            experiment.EXPECTED_TEST_MANIFEST_SHA256
+        )
+
+
+def test_canonical_text_hash_detects_substantive_change(tmp_path: Path):
+    manifest_lf = canonical_lf_payload(experiment.TEST_MANIFEST_PATH)
+    modified = manifest_lf.replace(b'"n_lexical_items": 5881', b'"n_lexical_items": 5882')
+    assert modified != manifest_lf
+    path = tmp_path / "modified-test-manifest.json"
+    path.write_bytes(modified)
+
+    assert experiment.sha256_canonical_text(path) != experiment.EXPECTED_TEST_MANIFEST_SHA256
+
+
+@pytest.mark.parametrize("line_ending", [b"\n", b"\r\n"], ids=["lf", "crlf"])
+def test_strict_protocol_validation_accepts_lf_and_crlf(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    line_ending: bytes,
+):
+    protocol_path = tmp_path / "experiment_protocol.json"
+    manifest_path = tmp_path / "test_manifest.json"
+    protocol_path.write_bytes(
+        canonical_lf_payload(experiment.EXPERIMENT_PROTOCOL_PATH).replace(b"\n", line_ending)
+    )
+    manifest_path.write_bytes(
+        canonical_lf_payload(experiment.TEST_MANIFEST_PATH).replace(b"\n", line_ending)
+    )
+    monkeypatch.setattr(experiment, "EXPERIMENT_PROTOCOL_PATH", protocol_path)
+    monkeypatch.setattr(experiment, "TEST_MANIFEST_PATH", manifest_path)
+
+    references = experiment.build_protocol_references(strict=True)
+
+    assert references["experiment_protocol"]["matches_frozen_reference"] is True
+    assert references["test_manifest"]["matches_frozen_reference"] is True
+    for reference in references.values():
+        assert reference["hash_algorithm"] == "sha256"
+        assert reference["hash_semantics"] == "canonical-text-lf-v1"
+        assert reference["canonical_sha256"] == reference["expected_canonical_sha256"]
+
+
+def test_strict_protocol_validation_rejects_content_change(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+):
+    protocol_path = tmp_path / "experiment_protocol.json"
+    manifest_path = tmp_path / "test_manifest.json"
+    protocol_path.write_bytes(canonical_lf_payload(experiment.EXPERIMENT_PROTOCOL_PATH))
+    manifest_lf = canonical_lf_payload(experiment.TEST_MANIFEST_PATH)
+    manifest_path.write_bytes(
+        manifest_lf.replace(b'"n_lexical_items": 5881', b'"n_lexical_items": 5882')
+    )
+    monkeypatch.setattr(experiment, "EXPERIMENT_PROTOCOL_PATH", protocol_path)
+    monkeypatch.setattr(experiment, "TEST_MANIFEST_PATH", manifest_path)
+
+    with pytest.raises(RuntimeError, match="canonical-text-lf-v1"):
+        experiment.build_protocol_references(strict=True)
+
+
 def test_strict_protocol_references_match_repository_files():
     references = experiment.build_protocol_references(strict=True)
 
     assert references["experiment_protocol"]["matches_frozen_reference"] is True
     assert references["test_manifest"]["matches_frozen_reference"] is True
+    assert references["experiment_protocol"]["canonical_sha256"] == (
+        experiment.EXPECTED_PROTOCOL_SHA256
+    )
+    assert references["test_manifest"]["canonical_sha256"] == (
+        experiment.EXPECTED_TEST_MANIFEST_SHA256
+    )
+    assert references["test_manifest"]["legacy_windows_working_tree_sha256"] == (
+        experiment.LEGACY_WINDOWS_TEST_MANIFEST_RAW_SHA256
+    )
 
 
 def test_storage_report_is_read_only_and_counts_canary_checkpoints(tmp_path: Path):
