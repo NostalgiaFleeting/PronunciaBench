@@ -33,53 +33,92 @@ Input Name ──► Normalization ──► Multilingual G2P Backends
 
 ## Experiment: ByT5 on CMUdict G2P
 
-A ByT5-small fine-tuning experiment was built on the `experiment/byt5-cmudict` branch to learn ARPAbet pronunciation from CMUdict (135k entries). The full pipeline is ready for a GPU run.
+A ByT5-small fine-tuning experiment was built on the `experiment/byt5-cmudict` branch to learn ARPAbet pronunciation from CMUdict (135k entries). The scientific protocol and frozen test manifest are checked before a strict run. The operational GTX 1070 protocol is batch size `1`, gradient accumulation `32`, Adafactor, and FP32, giving effective batch size `32`; the legacy batch/precision fields in `reports/experiment_protocol.json` are preserved as recorded provenance and are not silently rewritten.
 
-**Status: `REAL_GPU_RUN_PENDING`** — GPU training requires a CUDA-enabled PyTorch install. The current environment has `torch 2.13.0+cpu` (Python 3.13 has no CUDA wheels). A CPU smoke test validated the training chain (`dataset → forward/backward → checkpoint → inference → metric`) but the PER of 1.59 on 200 samples is **not a model performance result**; it only confirms the pipeline works. See `experiments/byt5-cmudict-001/byt5-cmudict-001/results.json` for smoke test details.
+**Status: `REAL_GPU_RUN_PENDING`** — the CPU environment is not a performance result. Use the isolated Python 3.12 GPU environment below for the real run.
+
+### Low-Disk GTX 1070 Experiment
+
+The training entry point keeps checkpoints and run artifacts under one experiment root. By default that is `experiments/byt5-cmudict-001`; use `--experiment-dir` to put it on another volume without changing the dataset or model protocol:
+
+```powershell
+python scripts/storage_report.py
+
+# Example only; the directory must be on a volume you control.
+python scripts/run_byt5_cmudict.py --experiment-dir "E:\PronunciaBenchExperiments" ...
+```
+
+`--low-disk` uses epoch evaluation and epoch checkpoints for the official run, retains at most two resumable checkpoints, keeps optimizer/scheduler/RNG state (`save_only_model=false`), and reloads the selected best checkpoint for finalization. Canary runs are explicitly bounded by `--max-steps`; they save at their final step, never load the frozen test split, and are marked `CANARY_RUN`. `--finalization-smoke N` runs the complete reload, deterministic validation generation, PER/exact-match, error analysis, and atomic results/provenance pipeline on exactly `N` validation examples. It also reports elapsed time, samples/second, seconds/sample, and peak GPU memory.
+
+The optional cleanup flags are deliberately separate:
+
+- `--cleanup-canary` removes only validated `checkpoint-*` directories after a successful canary. It never applies to a full run.
+- `--compact-after-success` is for a successful official run only. It exports `best_model/` once, verifies all final artifacts, then removes intermediate checkpoints inside that run directory. It never runs after a failure.
+- Neither flag touches Hugging Face caches, pip caches, downloaded wheels, virtual environments, or parent directories.
+
+Hugging Face cache relocation is user-managed and does not change automatically from this script:
+
+```powershell
+$env:HF_HOME="E:\HFCache"
+$env:HF_HUB_CACHE="E:\HFCache\hub"
+```
+
+The storage report is read-only. Inspect cache locations separately before deciding whether to prune them; do not delete the pinned `google/byt5-small` revision needed for reproducibility.
 
 ### Local GPU setup (GTX 1070 / 8GB VRAM)
 
 The machine has a GTX 1070 (Pascal, CC 6.1, 8 GB) confirmed by `nvidia-smi`. Python 3.13 has no CUDA wheels; use the isolated `.venv-gpu` environment with Python 3.12:
 
 ```powershell
-# One-time setup (already done; skip if .venv-gpu exists)
 py -3.12 -m venv .venv-gpu
 .\.venv-gpu\Scripts\python.exe -m pip install --upgrade pip setuptools wheel
 .\.venv-gpu\Scripts\python.exe -m pip install "torch==2.5.1+cu121" --index-url https://download.pytorch.org/whl/cu121
-
-# Verify GPU and sm_61 support before training
 .\.venv-gpu\Scripts\python.exe -c "import torch; print('torch=',torch.__version__); print('cuda=',torch.version.cuda); print('avail=',torch.cuda.is_available()); print('gpu=',torch.cuda.get_device_name(0)); print('cap=',torch.cuda.get_device_capability(0)); print('archs=',torch.cuda.get_arch_list())"
-
-pip install -e ".[dev,train]"
+.\.venv-gpu\Scripts\python.exe -m pip install -e ".[dev,train]"
 ```
 
-**Critical check:** `torch.cuda.get_arch_list()` must contain `sm_61` (Pascal). If it does not, the wheel lacks native kernels for this GPU and you must try a different build.
+`torch.cuda.get_arch_list()` must contain `sm_61`. Pascal has no BF16, so the strict GTX 1070 command explicitly uses FP32. Do not install `torchvision`; it is unused here.
 
-**Canary validation** (20 steps — fast hardware sanity check, never opens frozen test):
+### Run order
+
+1. **Canary:** bounded hardware check; no frozen test access.
+2. **Finalization smoke:** a 2-step canary plus exactly 64 validation predictions; no frozen test access.
+3. **Official experiment:** the only mode that opens the frozen test split, after three epochs finish and the best checkpoint is reloaded.
+
+The recommended finalization smoke is:
+
 ```powershell
 .\.venv-gpu\Scripts\python.exe scripts/run_byt5_cmudict.py `
     --data-dir data/experiment `
-    --batch-size 1 --gradient-accumulation 32 --gradient-checkpointing `
-    --optimizer adafactor --max-steps 20
+    --batch-size 1 `
+    --gradient-accumulation 32 `
+    --gradient-checkpointing `
+    --optimizer adafactor `
+    --amp-backend fp32 `
+    --max-steps 2 `
+    --finalization-smoke 64 `
+    --eval-batch-size 1 `
+    --low-disk `
+    --strict-config
 ```
 
-Confirm before proceeding: CUDA is active, VRAM stable, no OOM, loss finite, no NaN.
+Do not start the official experiment until this smoke exits normally and its output confirms `Frozen test opened: NO`. The exact manual full-run command is intentionally not executed by repository maintenance:
 
-**Full experiment** (after canary passes; use `--strict-config` to freeze the protocol):
 ```powershell
 .\.venv-gpu\Scripts\python.exe scripts/run_byt5_cmudict.py `
     --data-dir data/experiment `
-    --epochs 3 --batch-size 1 --gradient-accumulation 32 `
-    --gradient-checkpointing --optimizer adafactor --strict-config
+    --epochs 3 `
+    --batch-size 1 `
+    --gradient-accumulation 32 `
+    --gradient-checkpointing `
+    --optimizer adafactor `
+    --amp-backend fp32 `
+    --eval-batch-size 1 `
+    --low-disk `
+    --min-free-gb 40 `
+    --compact-after-success `
+    --strict-config
 ```
-
-**GPU config notes:**
-- Pascal (CC 6.x) has **no BF16** — script starts in fp32; `--strict-config` prevents any hidden fallback to fp16
-- `--gradient-checkpointing` is on by default (trades compute for VRAM)
-- `--optimizer adafactor` recommended for 8 GB cards (AdamW uses ~2× optimizer state memory)
-- `--strict-config` → OOM aborts immediately; do NOT silently change batch size or precision during formal run
-- Target effective batch: 32 (= `batch_size × gradient_accumulation`)
-- **Never install `torchvision`** — unused by this project and only adds version-conflict surface
 
 **Kaggle as Plan B:**
 ```bash
@@ -88,9 +127,9 @@ cd PronunciaBench
 git checkout experiment/byt5-cmudict
 pip install -e ".[dev]"
 python scripts/cmudict_import.py
-python scripts/run_byt5_cmudict.py --data-dir data/experiment --epochs 3 --batch-size 32 --gradient-accumulation 2
+python scripts/run_byt5_cmudict.py --data-dir data/experiment --epochs 3 --batch-size 1 --gradient-accumulation 32 --gradient-checkpointing --optimizer adafactor --eval-batch-size 1 --low-disk --min-free-gb 40 --compact-after-success --strict-config
 ```
-See `notebooks/kaggle_runner.ipynb` for the complete Kaggle-ready workflow with automatic GPU detection and OOM fallback.
+Choose an explicit supported precision for the Kaggle GPU before using this fallback. See `notebooks/kaggle_runner.ipynb` for the setup workflow; strict runs abort on OOM rather than changing the frozen configuration.
 
 ## Dataset Provenance
 
