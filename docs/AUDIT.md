@@ -161,3 +161,26 @@ States "Multilingual G2P reliability framework" but only English has any validat
 | P1 | CI eSpeak test | Install espeak-ng, verify real predictions |
 | P2 | Risk-coverage experiment | Run with real data when available |
 | P2 | README claims | Remove unsupported statements |
+
+---
+
+## 10. Cross-platform protocol-hash migration
+
+**Date**: 2026-08-19
+
+Scientific text-file identity now uses `sha256` with `canonical-text-lf-v1` semantics:
+CRLF and lone CR line endings are normalized to LF at the byte level before hashing, while
+every other byte is preserved exactly. JSON is not parsed or re-serialized for this hash.
+
+The previous test-manifest value
+`A5058B9B75E450BB62F40D9AE3AB22F477B7B90516F7F3E4B0A9C252D18C43F9`
+was the raw SHA-256 of the Windows CRLF working-tree serialization. The canonical
+cross-platform identity is
+`7B5D7D204837D2FD8480F0E793EE00E556E27ACF1E32CB88F8E3A757CD3C8321`, matching the LF
+content stored by Git.
+
+Hashes are shown in uppercase for audit readability. Hexadecimal SHA-256 casing has no semantic
+meaning, and strict validation compares canonical and expected hashes case-insensitively.
+
+This migration corrects provenance and hash semantics only. It does not change the scientific
+protocol, frozen-test content, split membership, or test-set metrics.
