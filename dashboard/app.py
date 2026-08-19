@@ -2,13 +2,8 @@
 
 from __future__ import annotations
 
-import json
-
 import gradio as gr
-import numpy as np
 
-from pronunciabench.data.models import PronunciationPrediction
-from pronunciabench.data.normalize import phoneme_error_rate
 from pronunciabench.ensemble.consensus import ConsensusEngine
 from pronunciabench.models.espeak import EspeakG2P
 from pronunciabench.reliability.scorer import ReliabilityScorer
@@ -44,7 +39,7 @@ def pronounce_name(text: str, locale: str, risk_tolerance: float) -> dict:
 def benchmark_results(dataset_path: str) -> str:
     """Run benchmark and return formatted report."""
     try:
-        from pronunciabench.data import load_jsonl, compute_stats, generate_report
+        from pronunciabench.data import compute_stats, generate_report, load_jsonl
         from pronunciabench.evaluation.metrics import Evaluator
         examples = load_jsonl(dataset_path)
         stats = compute_stats(examples)
@@ -61,7 +56,7 @@ def benchmark_results(dataset_path: str) -> str:
 
             evaluator = Evaluator(preds, refs)
             metrics = evaluator.compute_metrics()
-            report += f"\n\n--- Benchmark Results ---\n"
+            report += "\n\n--- Benchmark Results ---\n"
             report += metrics.to_markdown_table()
 
         return report
