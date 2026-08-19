@@ -10,7 +10,7 @@ pip-wheel-metadata/
 # Virtual env
 venv/
 env/
-.venv/
+.venv*/
 
 # IDE
 .idea/
@@ -28,6 +28,9 @@ htmlcov/
 # Artifacts (training checkpoints are large)
 artifacts/
 experiments/
+test_output/
+test_save*/
+tmp_trainer/
 
 # Data (large files)
 data/cmudict/
